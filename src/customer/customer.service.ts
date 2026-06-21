@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common";
 @Injectable()
 export class CustomerService {
     getCustomer(): string {
-        return "Eshan";
+        return "Customer";
     }
 
     getAllCustomer(): object {
