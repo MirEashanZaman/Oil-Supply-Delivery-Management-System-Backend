@@ -3,8 +3,8 @@ import { DealerController } from './dealer.controller';
 import { DealerService } from './dealer.service';
 
 @Module({
+  imports: [],
   controllers: [DealerController],
   providers: [DealerService],
-  exports: [DealerService], // exported in case other modules need dealer data
 })
-export class DealerModule {}
+export class DealerModule { }

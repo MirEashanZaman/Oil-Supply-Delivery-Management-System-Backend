@@ -7,7 +7,7 @@ export class CustomerService {
     }
 
     getAllCustomer(): object {
-        return { name: "abc", id: "1" }
+        return { name: "Eashan", id: "1" }
     }
 
     getCustomerByID(id: number, name: string): object {
@@ -18,5 +18,3 @@ export class CustomerService {
         return { name: name, id: id }
     }
 }
-
-
