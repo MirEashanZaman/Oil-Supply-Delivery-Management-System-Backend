@@ -10,4 +10,4 @@ import { DealerModule } from './dealer/dealer.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
