@@ -1,5 +1,6 @@
-import { Controller, Get, Param, Query } from "@nestjs/common";
+import { Controller, Get, Param, Query, Post, Body } from "@nestjs/common";
 import { CustomerService } from "./customer.service"
+import { CustomerDTO } from "./customer.dto";
 
 @Controller('customer')
 export class CustomerController {
@@ -23,5 +24,12 @@ export class CustomerController {
     getCustomerByIDandName(@Query('id') id: number, @Query('name') name: string): object {
         return this.customerService.getCustomerByIDandName(id, name);
     }
+
+    @Post('createcustomer')
+    createAdmin(@Body() adminData: CustomerDTO): object {
+        console.log(adminData)
+        return this.customerService.createCustomer(adminData);
+    }
+
 
 }
