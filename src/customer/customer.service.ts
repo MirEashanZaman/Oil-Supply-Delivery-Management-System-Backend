@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { CustomerDTO } from "./customer.dto";
 
 @Injectable()
 export class CustomerService {
@@ -17,4 +18,10 @@ export class CustomerService {
     getCustomerByIDandName(id: number, name: string): object {
         return { name: name, id: id }
     }
+
+    createCustomer(customerData: CustomerDTO) {
+        return customerData;
+    }
+
+
 }
