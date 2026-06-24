@@ -23,4 +23,8 @@ export class CustomerService {
         return customerData;
     }
 
+    updateCustomer(id: number, updateCustomer: CustomerDTO): CustomerDTO {
+        return updateCustomer;
+    }
+
 }
