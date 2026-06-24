@@ -31,5 +31,4 @@ export class CustomerController {
         return this.customerService.createCustomer(adminData);
     }
 
-
 }
