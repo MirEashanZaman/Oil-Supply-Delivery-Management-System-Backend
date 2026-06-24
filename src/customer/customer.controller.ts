@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Post, Body } from "@nestjs/common";
+import { Controller, Get, Param, Query, Post, Body, Put } from "@nestjs/common";
 import { CustomerService } from "./customer.service"
 import { CustomerDTO } from "./customer.dto";
 
@@ -26,9 +26,15 @@ export class CustomerController {
     }
 
     @Post('createcustomer')
-    createAdmin(@Body() adminData: CustomerDTO): object {
-        console.log(adminData)
+    createAdmin(@Body() adminData: CustomerDTO): CustomerDTO {
+        console.log(adminData.name)
         return this.customerService.createCustomer(adminData);
+    }
+
+    @Put('updatecustomer/:id') //use for update data like forget password
+    updateCustomer(@Param('id') id: number, @Body() customerData: CustomerDTO): CustomerDTO {
+        console.log(customerData.name)
+        return this.customerService.updateCustomer(id, customerData);
     }
 
 }
