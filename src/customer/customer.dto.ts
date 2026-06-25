@@ -8,4 +8,5 @@ export class CustomerDTO {
     @IsEmail()
     uname?: number;
     password?: string;
+    filename?: string;
 }
