@@ -6,7 +6,7 @@ export class CustomerDTO {
     @Matches(/^[A-Za-z]+$/, { message: "Name must contain only Alphabets" })
     name?: string;
 
-    @IsNotEmpty()
+    @IsNotEmpty({ message: "Email is required" })
     @IsEmail({}, { message: "Email input must contain @ and .xyz domain" })
     @Matches(/^[^\s@]+@[^\s@]+\.xyz$/i, { message: "Email input must contain @ and .xyz domain" })
     uname?: string;
