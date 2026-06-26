@@ -30,19 +30,19 @@ export class CustomerController {
 
     @Post('createcustomer')
     @UsePipes(new ValidationPipe())
-    @UseInterceptors(FileInterceptor('myfile', {
-        fileFilter: (req, myfile, cb) => {
-            if (myfile.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/))
+    @UseInterceptors(FileInterceptor('nidImage', {
+        fileFilter: (req, nidImage, cb) => {
+            if (nidImage.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/))
                 cb(null, true);
             else {
                 cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'image'), false);
             }
         },
-        limits: { fileSize: 30000000 },
+        limits: { fileSize: 2 * 1024 * 1024 },
         storage: diskStorage({
             destination: './uploads',
-            filename: function (req, myfile, cb) {
-                cb(null, Date.now() + myfile.originalname)
+            filename: function (req, nidImage, cb) {
+                cb(null, Date.now() + nidImage.originalname)
             },
         })
     }))
