@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { DealerDTO } from "./dealer.dto";
 
 @Injectable()
 export class DealerService {
@@ -16,5 +17,9 @@ export class DealerService {
 
   getDealerByIDandName(id: number, name: string): object {
     return { name: name, id: id };
+  }
+
+  updateDealer(id: number, dealerData: DealerDTO): object {
+    return { message: "Dealer updated", id, data: dealerData };
   }
 }
