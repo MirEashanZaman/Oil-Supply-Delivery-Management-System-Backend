@@ -9,7 +9,7 @@ export class CustomerDTO {
     @IsNotEmpty({ message: "Email is required" })
     @IsEmail({}, { message: "Email input must contain @ and .xyz domain" })
     @Matches(/^[^\s@]+@[^\s@]+\.xyz$/i, { message: "Email input must contain @ and .xyz domain" })
-    uname?: string;
+    email?: string;
 
     password?: string;
     filename?: string;
