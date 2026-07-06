@@ -11,5 +11,7 @@ export class CustomerEntity {
     @Column()
     password?: string;
     @Column()
+    nid?: string;
+    @Column()
     filename?: string;
 }
