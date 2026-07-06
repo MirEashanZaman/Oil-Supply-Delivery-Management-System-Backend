@@ -4,6 +4,7 @@ import { CustomerDTO } from "./customer.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { diskStorage, MulterError } from 'multer';
 import type { Response } from 'express';
+import { CustomerEntity } from "./customer.entity";
 
 @Controller('customer')
 export class CustomerController {
@@ -47,7 +48,7 @@ export class CustomerController {
         })
     }))
 
-    createCustomer(@UploadedFile() file: Express.Multer.File, @Body() customerData: CustomerDTO): CustomerDTO {
+    createCustomer(@UploadedFile() file: Express.Multer.File, @Body() customerData: CustomerDTO): Promise<CustomerEntity> {
         console.log(file?.filename);
         customerData.filename = file?.filename;
         return this.customerService.createCustomer(customerData);
