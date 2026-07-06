@@ -13,11 +13,11 @@ export class CustomerService {
     }
 
     getAllCustomer(): object {
-        return { name: "Eashan", id: "1" }
+        return this.customerRepository.find();
     }
 
     getCustomerByID(id: number, name: string): object {
-        return { name: name, id: id }
+        return this.customerRepository.findOneBy({ id: id });
     }
 
     getCustomerByIDandName(id: number, name: string): object {
