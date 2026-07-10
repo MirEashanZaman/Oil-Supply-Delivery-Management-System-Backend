@@ -65,4 +65,16 @@ export class CustomerController {
         res.sendFile(name, { root: './uploads' })
     }
 
+    @Post('createdealerbycustomer/:id')
+    createDealerByCustomer(customerid: number, dealerData: object): Promise<Dealer> {
+        const customer = this.customerRepository.findOneBy({ id: customerid });
+        if (!customer) {
+            throw new Error('Customer with ID ${customerid} not found');
+
+        } else {
+            dealerData.customer = customer;
+            return this.dealerRepository.save(dealerData);
+        }
+    }
+
 }

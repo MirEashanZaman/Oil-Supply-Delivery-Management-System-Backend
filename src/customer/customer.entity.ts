@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm"
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm"
 
 @Entity()
 export class CustomerEntity {
@@ -14,4 +14,6 @@ export class CustomerEntity {
     nid?: string;
     @Column()
     filename?: string;
+    @ManyToOne(() => DealerEntity, (dealer) => CustomerEntity.dealers)
+    dealer?: CustomerEntity;
 }
