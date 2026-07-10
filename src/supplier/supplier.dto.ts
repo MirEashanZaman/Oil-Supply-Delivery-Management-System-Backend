@@ -1,21 +1,20 @@
-import { IsNotEmpty, IsString, Matches, MinLength, } from "class-validator";
+import { IsIn, IsInt, IsNotEmpty, IsString, Matches, MaxLength, Min, IsOptional } from "class-validator";
 
 export class SupplierDTO {
     @IsNotEmpty()
     @IsString()
+    @MaxLength(100)
     @Matches(/^[A-Za-z\s]+$/, { message: "Name must not contain any special character", })
-    name?: string;
+    fullname?: string;
 
     @IsNotEmpty()
-    @MinLength(6, { message: "Password must be at least 6 characters long", })
-    @Matches(/^(?=.*[a-z]).{6,}$/, { message: "Password must contain at least one lowercase character", })
-    password?: string;
+    @IsInt()
+    @Min(0, { message: "Age cannot be less than 0 ", })
+    age?: number;
 
 
-    filename?: string;
-
-    @IsNotEmpty()
-    @Matches(/^01\d{9}$/, { message: "Phone number must start with 01 and be 11 digits", })
-    phone?: string;
+    @IsOptional()
+    @IsIn(['active', 'inactive'])
+    status?: string;
 
 }

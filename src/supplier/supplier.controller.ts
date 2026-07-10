@@ -1,9 +1,9 @@
-import { Controller, Get, Param, Query, Body, Post, UploadedFile, UseInterceptors, UsePipes, ValidationPipe, Res, Put } from "@nestjs/common";
+import { Controller, Get, Param, Query, Body, Post, UsePipes, ValidationPipe, Put } from "@nestjs/common";
 import { SupplierService } from "./supplier.service"
 import { SupplierDTO } from "./supplier.dto";
-import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage, MulterError } from 'multer';
-import type { Response } from 'express';
+//import { FileInterceptor } from '@nestjs/platform-express';
+//import { diskStorage, MulterError } from 'multer';
+//import type { Response } from 'express';
 import { SupplierEntity } from "./supplier.entity";
 
 @Controller('supplier')
@@ -20,53 +20,52 @@ export class SupplierController {
     }
 
     @Get('getsupplierbyid/:myid/geybyname/:name')
-    getSupplierByID(@Param('myid') id: number, @Param('name') name: string): object {
-        return this.supplierService.getSupplierByID(id, name);
+    getSupplierByID(@Param('myid') id: number, @Param('fullname') fullname: string): object {
+        return this.supplierService.getSupplierByID(id, fullname);
     }
 
     @Get('getsupplierbyidandname')
-    getSupplierByIDandName(@Query('id') id: number, @Query('name') name: string): object {
-        return this.supplierService.getSupplierByIDandName(id, name);
+    getSupplierByIDandName(@Query('id') id: number, @Query('fullname') fullname: string): object {
+        return this.supplierService.getSupplierByIDandName(id, fullname);
     }
 
     @Post('createsupplier')
     @UsePipes(new ValidationPipe())
-    @UseInterceptors(
-        FileInterceptor('pdfFile', {
-            fileFilter: (req, file, cb) => {
-                if (file.originalname.match(/^.*\.(pdf)$/i)) { cb(null, true); }
-                else {
-                    cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'pdf'), false);
-                }
-            },
-            limits: { fileSize: 5 * 1024 * 1024 },
-            storage: diskStorage({
-                destination: './uploads',
-                filename: (req, file, cb) => {
-                    cb(null, Date.now() + '-' + file.originalname);
-                },
-            }),
 
-        }),
-
-
-    )
     createSupplier(
-        @UploadedFile() file: Express.Multer.File,
+
         @Body() supplierData: SupplierDTO,): Promise<SupplierEntity> {
-        supplierData.filename = file?.filename;
+
+        console.log("Received Body:", supplierData);
         return this.supplierService.createSupplier(supplierData);
     }
 
-    @Put('updatesupplier/:id') //use for update data
-    updateSupplier(@Param('id') id: number, @Body() supplierData: SupplierDTO): SupplierDTO {
-        console.log(supplierData.name)
-        return this.supplierService.updateSupplier(id, supplierData);
+
+
+    @Put('updatesupplier/:id/:status')
+    updateSupplier(
+        @Param('id') id: number,
+        @Param('status') status: string
+    ) {
+        return this.supplierService.updateSupplier(id, status);
     }
 
-    @Get('/getfile/:name')
+    @Get('inactivesupplier')
+    getInactiveUsers(): Promise<SupplierEntity[]> {
+
+        return this.supplierService.getInactiveSupplier();
+    }
+
+    @Get('olderthan40')
+    getSupplierOld40(): Promise<SupplierEntity[]> {
+
+        return this.supplierService.getSupplierOld40();
+    }
+
+
+    /*@Get('/getfile/:name')
     getfile(@Param('name') name: string, @Res() res: Response) {
         res.sendFile(name, { root: './uploads' })
-    }
+    }*/
 
 }

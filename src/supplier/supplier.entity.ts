@@ -1,14 +1,13 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 @Entity("supplier")
 export class SupplierEntity {
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn({ unsigned: true })
     id?: number;
-    @Column()
-    name?: string;
-    @Column()
-    password?: string;
-    @Column()
-    filename?: string;
-    @Column()
-    phone?: string;
+    @Column({ type: "varchar", length: 100 })
+    fullname?: string;
+    @Column({ type: "int", unsigned: true })
+    age?: number;
+    @Column({ type: 'enum', enum: ['active', 'inactive'], default: 'active' })
+    status?: string;
+
 }
