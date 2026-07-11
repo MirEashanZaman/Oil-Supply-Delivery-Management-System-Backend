@@ -1,4 +1,4 @@
-import { Entity, OneToMany, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 
 @Entity()
 export class Manager {
@@ -12,9 +12,4 @@ export class Manager {
     password?: string;
     @Column()
     filename?: string;
-    @OneToMany(() => CustomerController, (customer) => customer.dealer, {
-        cascade: true
-    })
-    dealer?: Dealer;
-
 }

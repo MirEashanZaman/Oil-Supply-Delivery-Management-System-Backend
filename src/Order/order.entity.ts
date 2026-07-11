@@ -1,12 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from
-    'typeorm';
-import { Customer } from "./customer.entity";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { CustomerEntity } from "../customer/customer.entity";
+
 @Entity()
-export class Order {
+export class OrderEntity {
     @PrimaryGeneratedColumn()
     id?: number;
     @Column()
     orderNumber?: string;
-    @ManyToOne(() => Customer, customer => customer.orders)
-    customer: Customer;
+    @ManyToOne(() => CustomerEntity, customer => customer.orders)
+    customer?: CustomerEntity;
 }
