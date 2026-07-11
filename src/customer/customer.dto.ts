@@ -4,7 +4,12 @@ export class CustomerDTO {
     @IsNotEmpty()
     @IsString({ message: "Name must contain only Alphabets" })
     @Matches(/^[A-Za-z]+$/, { message: "Name must contain only Alphabets" })
-    name?: string;
+    username?: string;
+
+    @IsNotEmpty()
+    @IsString({ message: "Name must contain only letters and spaces" })
+    @Matches(/^[A-Za-z\s]+$/, { message: "Full name must contain only letters and spaces" })
+    fullName?: string;
 
     @IsNotEmpty({ message: "Email is required" })
     @IsEmail({}, { message: "Email input must contain @ and .xyz domain" })
@@ -13,6 +18,7 @@ export class CustomerDTO {
 
     password?: string;
     filename?: string;
+    isActive?: boolean;
 
     @IsNotEmpty({ message: "NID can't be empty" })
     @Matches(/^\d{10,17}$/, { message: "NID must be 10–17 digits" })
