@@ -15,13 +15,13 @@ export class CustomerController {
     }
 
     @Get('getallcustomer')
-    getAllCustomer(): object {
+    getAllCustomer(): Promise<any> {
         return this.customerService.getAllCustomer();
     }
 
-    @Get('getcustomerbyid/:myid/geybyname/:name')
-    getCustomerByID(@Param('myid') id: number, @Param('name') name: string): object {
-        return this.customerService.getCustomerByID(id, name);
+    @Get('getcustomerbyid/:myid')
+    getCustomerByID(@Param('myid') id: number): Promise<any> {
+        return this.customerService.getCustomerByID(Number(id));
     }
 
     @Get('getcustomerbyidandname')
@@ -65,16 +65,6 @@ export class CustomerController {
         res.sendFile(name, { root: './uploads' })
     }
 
-    @Post('createdealerbycustomer/:id')
-    createDealerByCustomer(customerid: number, dealerData: object): Promise<Dealer> {
-        const customer = this.customerRepository.findOneBy({ id: customerid });
-        if (!customer) {
-            throw new Error('Customer with ID ${customerid} not found');
 
-        } else {
-            dealerData.customer = customer;
-            return this.dealerRepository.save(dealerData);
-        }
-    }
 
 }
