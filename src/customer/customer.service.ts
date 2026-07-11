@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { CustomerDTO } from "./customer.dto";
 import { InjectRepository } from "@nestjs/typeorm";
-import { CustomerEntity } from './customer.entity'; // change this to your entity class
+import { CustomerEntity } from './customer.entity';
 import { Repository } from "typeorm";
-import { OrderEntity } from './order.entity';
+import { OrderEntity } from '../order/order.entity';
 
 
 
@@ -17,11 +17,11 @@ export class CustomerService {
         return "Customer";
     }
 
-    getAllCustomer(): object {
-        return this.customerRepository.find();
+    async getAllCustomer(): Promise<CustomerEntity[]> {
+        return this.customerRepository.find({ relations: { orders: true } });
     }
 
-    getCustomerByID(id: number, name: string): object {
+    async getCustomerByID(id: number): Promise<CustomerEntity | null> {
         return this.customerRepository.findOneBy({ id: id });
     }
 
@@ -30,21 +30,24 @@ export class CustomerService {
     }
 
     createCustomer(customerData: CustomerDTO): Promise<CustomerEntity> {
-        return this.customerRepository.save(customerData);
+        return this.customerRepository.save(customerData as any);
     }
 
     updateCustomer(id: number, updateCustomer: CustomerDTO): CustomerDTO {
         return updateCustomer;
     }
-    async createDealerByCustomer(dealerId: number, dealerData): Promise<Dealer> {
-        const dealer = await this.customerRepository.findOneBy(dealerId);
-        If(!customer)
-        { throw new Error('Customer not found'); }
-else {
-            order.customer = customer;
+
+    async createOrder(customerId: number, order: OrderEntity): Promise<OrderEntity> {
+        const customer = await this.customerRepository.findOneBy({ id: customerId });
+        if (!customer) {
+            throw new Error('Customer not found');
+        } else {
+            (order as any).customer = customer;
             return this.orderRepository.save(order);
         }
     }
-
+    async getOrdersByCustomerId(customerId: number): Promise<OrderEntity[]> {
+        return this.orderRepository.find({ where: { customer: { id: customerId } } });
+    }
 
 }
