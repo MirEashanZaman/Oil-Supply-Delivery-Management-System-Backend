@@ -30,7 +30,8 @@ export class CustomerService {
     }
 
     createCustomer(customerData: CustomerDTO): Promise<CustomerEntity> {
-        return this.customerRepository.save(customerData as any);
+        const customer = this.customerRepository.create(customerData);
+        return this.customerRepository.save(customer);
     }
 
     updateCustomer(id: string, updateCustomer: CustomerDTO): CustomerDTO {

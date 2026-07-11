@@ -7,8 +7,8 @@ export class CustomerDTO {
     username?: string;
 
     @IsNotEmpty()
-    @IsString({ message: "Name must contain only Alphabets" })
-    @Matches(/^[A-Za-z]+$/, { message: "Name must contain only Alphabets" })
+    @IsString({ message: "Name must contain only letters and spaces" })
+    @Matches(/^[A-Za-z\s]+$/, { message: "Full name must contain only letters and spaces" })
     fullName?: string;
 
     @IsNotEmpty({ message: "Email is required" })
