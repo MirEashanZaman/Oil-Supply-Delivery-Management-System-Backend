@@ -21,11 +21,11 @@ export class CustomerService {
         return this.customerRepository.find({ relations: { orders: true } });
     }
 
-    async getCustomerByID(id: string): Promise<CustomerEntity | null> {
+    async getCustomerByID(id: number): Promise<CustomerEntity | null> {
         return this.customerRepository.findOneBy({ id });
     }
 
-    getCustomerByIDandName(id: string, name: string): object {
+    getCustomerByIDandName(id: number, name: string): object {
         return { name: name, id: id }
     }
 
@@ -34,13 +34,13 @@ export class CustomerService {
         return this.customerRepository.save(customer);
     }
 
-    updateCustomer(id: string, updateCustomer: CustomerDTO): CustomerDTO {
+    updateCustomer(id: number, updateCustomer: CustomerDTO): CustomerDTO {
         console.log('update customer id', id);
         return updateCustomer;
     }
 
     async createOrder(customerId: string, order: OrderEntity): Promise<OrderEntity> {
-        const customer = await this.customerRepository.findOneBy({ id: customerId });
+        const customer = await this.customerRepository.findOneBy({ id: Number(customerId) });
         if (!customer) {
             throw new Error('Customer not found');
         } else {
@@ -49,7 +49,7 @@ export class CustomerService {
         }
     }
     async getOrdersByCustomerId(customerId: string): Promise<OrderEntity[]> {
-        return this.orderRepository.find({ where: { customer: { id: customerId } } });
+        return this.orderRepository.find({ where: { customer: { id: Number(customerId) } } });
     }
 
     async findByFullNameSubstring(fullName: string): Promise<CustomerEntity[]> {

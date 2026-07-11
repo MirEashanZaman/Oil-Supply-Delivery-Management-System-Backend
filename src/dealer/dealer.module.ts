@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
-import { DealerController } from './dealer.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Dealer } from './dealer.entity';
 import { DealerService } from './dealer.service';
+import { DealerController } from './dealer.controller';
 
 @Module({
-  imports: [],
+  imports: [TypeOrmModule.forFeature([Dealer])],
   controllers: [DealerController],
   providers: [DealerService],
 })

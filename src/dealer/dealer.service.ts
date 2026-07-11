@@ -1,25 +1,38 @@
-import { Injectable } from "@nestjs/common";
-import { DealerDTO } from "./dealer.dto";
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, IsNull } from 'typeorm';
+import { Dealer } from './dealer.entity';
+import { DealerDTO } from './dealer.dto';
 
 @Injectable()
 export class DealerService {
-  getDealer(): string {
-    return "Dealer";
+  constructor(
+    @InjectRepository(Dealer)
+    private dealerRepository: Repository<Dealer>,
+  ) {}
+
+  createDealer(dealerData: DealerDTO): Promise<Dealer> {
+    const newDealer: Dealer = this.dealerRepository.create({
+      ...dealerData,
+      phone: dealerData.phone ? Number(dealerData.phone) : undefined,
+    });
+    return this.dealerRepository.save(newDealer);
   }
 
-  getAllDealer(): object {
-    return { name: "Dealer", id: "1" };
+  async updatePhone(id: number, dealerData: DealerDTO): Promise<Dealer | null> {
+    await this.dealerRepository.update(id, {
+      phone: dealerData.phone ? Number(dealerData.phone) : undefined,
+    });
+    return this.dealerRepository.findOneBy({ id });
   }
 
-  getDealerByID(id: number, name: string): object {
-    return { name: name, id: id };
+  async getDealersWithNoName(): Promise<Dealer[]> {
+    return this.dealerRepository.find({
+      where: { fullName: IsNull() },
+    });
   }
 
-  getDealerByIDandName(id: number, name: string): object {
-    return { name: name, id: id };
-  }
-
-  updateDealer(id: number, dealerData: DealerDTO): object {
-    return { message: "Dealer updated", id, data: dealerData };
+  async deleteDealer(id: number): Promise<void> {
+    await this.dealerRepository.delete(id);
   }
 }

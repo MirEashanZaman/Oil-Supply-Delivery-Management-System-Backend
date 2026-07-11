@@ -1,30 +1,32 @@
-import { Entity, PrimaryColumn, Column, OneToMany, BeforeInsert } from "typeorm"
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, BeforeInsert } from "typeorm"
 import { OrderEntity } from "../order/order.entity";
 
 @Entity()
 export class CustomerEntity {
-    @PrimaryColumn({ length: 50 })
-    id!: string;
+    @PrimaryGeneratedColumn()
+    id?: number;
     @Column({ length: 100, unique: true })
-    username!: string;
+    username?: string;
     @Column({ length: 150 })
-    fullName!: string;
+    fullName?: string;
     @Column({ default: false })
-    isActive!: boolean;
+    isActive?: boolean;
     @Column()
-    email!: string;
+    email?: string;
     @Column()
-    password!: string;
+    password?: string;
     @Column()
-    nid!: string;
+    nid?: string;
     @Column()
-    filename!: string;
+    filename?: string;
 
     @OneToMany(() => OrderEntity, order => order.customer)
-    orders!: OrderEntity[];
+    orders?: OrderEntity[];
 
     @BeforeInsert()
     generateId() {
-        this.id = `cust-${Date.now()}`;
+        if (!this.id) {
+            this.id = Math.floor(Math.random() * 1000000);
+        }
     }
 }

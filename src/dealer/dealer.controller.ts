@@ -1,40 +1,34 @@
-import { Body, Controller, Get, Param, Post, Put, Query, UsePipes, ValidationPipe } from "@nestjs/common";
-import { DealerService } from "./dealer.service";
-import { DealerDTO } from "./dealer.dto";
+import { Controller, Get, Post, Body, Put, Param, Delete, UsePipes, ValidationPipe } from '@nestjs/common';
+import { DealerService } from './dealer.service';
+import { Dealer } from './dealer.entity';
+import { DealerDTO } from './dealer.dto';
 
 @Controller('dealer')
 export class DealerController {
   constructor(private readonly dealerService: DealerService) { }
 
-  @Get()
-  getDealer(): string {
-    return this.dealerService.getDealer();
-  }
-
-  @Get('getalldealer')
-  getAllDealer(): object {
-    return this.dealerService.getAllDealer();
-  }
-
-  @Get('getdealerbyid/:myid/geybyname/:name')
-  getDealerByID(@Param('myid') id: number, @Param('name') name: string): object {
-    return this.dealerService.getDealerByID(id, name);
-  }
-
-  @Get('getdealerbyidandname')
-  getDealerByIDandName(@Query('id') id: number, @Query('name') name: string): object {
-    return this.dealerService.getDealerByIDandName(id, name);
-  }
-
   @Post('createdealer')
   @UsePipes(new ValidationPipe())
-  createDealer(@Body() dealerData: DealerDTO): object {
-    return { message: 'Dealer data is valid', data: dealerData };
+  createDealer(@Body() dealerData: DealerDTO): Promise<Dealer> {
+    return this.dealerService.createDealer(dealerData);
   }
 
-  @Put('updatedealer/:id')
-  updateDealer(@Param('id') id: number, @Body() dealerData: DealerDTO): DealerDTO {
-    console.log(dealerData.name)
-    return this.dealerService.updateDealer(id, dealerData);
+  @Put('updatephone/:id')
+  @UsePipes(new ValidationPipe())
+  updatePhone(
+    @Param('id') id: string,
+    @Body() dealerData: DealerDTO,
+  ): Promise<Dealer | null> {
+    return this.dealerService.updatePhone(Number(id), dealerData);
+  }
+
+  @Get('nullfullname')
+  getDealersWithNoName(): Promise<Dealer[]> {
+    return this.dealerService.getDealersWithNoName();
+  }
+
+  @Delete(':id')
+  deleteDealer(@Param('id') id: string): Promise<void> {
+    return this.dealerService.deleteDealer(Number(id));
   }
 }
