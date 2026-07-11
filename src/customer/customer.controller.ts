@@ -21,12 +21,12 @@ export class CustomerController {
 
     @Get('getcustomerbyid/:myid')
     getCustomerByID(@Param('myid') id: string): Promise<any> {
-        return this.customerService.getCustomerByID(id);
+        return this.customerService.getCustomerByID(Number(id));
     }
 
     @Get('getcustomerbyidandname')
     getCustomerByIDandName(@Query('id') id: string, @Query('name') name: string): object {
-        return this.customerService.getCustomerByIDandName(id, name);
+        return this.customerService.getCustomerByIDandName(Number(id), name);
     }
 
     @Post('createcustomer')
@@ -57,7 +57,7 @@ export class CustomerController {
     @Put('updatecustomer/:id') //use for update data like forget password
     updateCustomer(@Param('id') id: string, @Body() customerData: CustomerDTO): CustomerDTO {
         console.log(customerData.username)
-        return this.customerService.updateCustomer(id, customerData);
+        return this.customerService.updateCustomer(Number(id), customerData);
     }
 
     @Get('/getimage/:name')
