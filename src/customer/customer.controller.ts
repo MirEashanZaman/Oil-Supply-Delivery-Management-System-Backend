@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Post, Body, Put, ValidationPipe, UsePipes, UseInterceptors, UploadedFile, Res } from "@nestjs/common";
+import { Controller, Get, Param, Query, Post, Body, Put, ValidationPipe, UsePipes, UseInterceptors, UploadedFile, Res, Delete } from "@nestjs/common";
 import { CustomerService } from "./customer.service"
 import { CustomerDTO } from "./customer.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
@@ -20,12 +20,12 @@ export class CustomerController {
     }
 
     @Get('getcustomerbyid/:myid')
-    getCustomerByID(@Param('myid') id: number): Promise<any> {
-        return this.customerService.getCustomerByID(Number(id));
+    getCustomerByID(@Param('myid') id: string): Promise<any> {
+        return this.customerService.getCustomerByID(id);
     }
 
     @Get('getcustomerbyidandname')
-    getCustomerByIDandName(@Query('id') id: number, @Query('name') name: string): object {
+    getCustomerByIDandName(@Query('id') id: string, @Query('name') name: string): object {
         return this.customerService.getCustomerByIDandName(id, name);
     }
 
@@ -55,14 +55,29 @@ export class CustomerController {
     }
 
     @Put('updatecustomer/:id') //use for update data like forget password
-    updateCustomer(@Param('id') id: number, @Body() customerData: CustomerDTO): CustomerDTO {
-        console.log(customerData.name)
+    updateCustomer(@Param('id') id: string, @Body() customerData: CustomerDTO): CustomerDTO {
+        console.log(customerData.username)
         return this.customerService.updateCustomer(id, customerData);
     }
 
     @Get('/getimage/:name')
     getImages(@Param('name') name: string, @Res() res: Response) {
         res.sendFile(name, { root: './uploads' })
+    }
+
+    @Get('search')
+    findByFullName(@Query('fullName') fullName: string) {
+        return this.customerService.findByFullNameSubstring(fullName);
+    }
+
+    @Get(':username')
+    findByUsername(@Param('username') username: string) {
+        return this.customerService.findByUsername(username);
+    }
+
+    @Delete(':username')
+    deleteByUsername(@Param('username') username: string) {
+        return this.customerService.deleteByUsername(username);
     }
 
 
