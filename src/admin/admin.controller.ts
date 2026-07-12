@@ -1,44 +1,52 @@
 import { Body, Controller, Get, Param, Post, Put, Query, UsePipes, ValidationPipe } from "@nestjs/common";
-import { AdminService } from "./admin.service"
+import { AdminService } from "./admin.service";
 import { AdminDTO } from "./admin.dto";
-
-
+import { AdminEntity } from "./admin.entity";
+ 
 @Controller('admin')
 export class AdminController {
     constructor(private readonly adminService: AdminService) { }
+ 
     @Get()
     getAdmin(): string {
         return this.adminService.getAdmin();
     }
-
+ 
     @Get('getalladmin')
-    getAllAdmin(): object {
+    getAllAdmin(): Promise<AdminEntity[]> {
         return this.adminService.getAllAdmin();
     }
-
-    @Get('getadminbyid/:myid/geybyname/:name')
-    getAdminByID(@Param('myid') id: number, @Param('name') name: string): object {
-        return this.adminService.getAdminByID(id, name);
+ 
+    @Get('getadminbyid/:myid')
+    getAdminByID(@Param('myid') id: string): Promise<AdminEntity | null> {
+        return this.adminService.getAdminByID(Number(id));
     }
-
-    @Get('getadminbyidandname')
-    getAdminByIDandName(@Query('id') id: number, @Query('name') name: string): object {
-        return this.adminService.getAdminByIDandName(id, name);
-    }
+ 
     @Post('createadmin')
     @UsePipes(new ValidationPipe())
-    createAdmin(@Body() adminData: AdminDTO): AdminDTO {
+    createAdmin(@Body() adminData: AdminDTO): Promise<AdminEntity> {
         return this.adminService.createAdmin(adminData);
     }
-
-    @Put('updateadmin/:id')
+ 
+ 
+    @Put('updatecountry/:id')
     @UsePipes(new ValidationPipe())
-    updateAdmin(
-        @Param('id') id: number,
-        @Body() adminData: AdminDTO,
-    ): AdminDTO {
-        console.log(adminData.name);
-        return this.adminService.updateAdmin(id, adminData);
+    updateCountry(
+        @Param('id') id: string,
+        @Body('country') country: string,
+    ): Promise<any> {
+        return this.adminService.updateCountry(Number(id), country);
     }
-
+ 
+ 
+    @Get('joiningdate')
+    getByJoiningDate(@Query('date') date: string): Promise<AdminEntity[]> {
+        return this.adminService.getByJoiningDate(date);
+    }
+ 
+ 
+    @Get('unknowncountry')
+    getUnknownCountryUsers(): Promise<AdminEntity[]> {
+        return this.adminService.getUnknownCountryUsers();
+    }
 }
