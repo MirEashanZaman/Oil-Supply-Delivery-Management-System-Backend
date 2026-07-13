@@ -15,8 +15,11 @@ export class AuthService {
         return await this.customerService.createCustomer(myobj);
     }
     async signIn(logindata: loginDTO): Promise<{ access_token: string }> {
-        const user = await this.customerService.findByUsername(logindata.username);
-        if (!user) {
+        if (!logindata.email || !logindata.password) {
+            throw new UnauthorizedException();
+        }
+        const user = await this.customerService.findByEmail(logindata.email);
+        if (!user || !user.password) {
             throw new UnauthorizedException();
         }
         const isMatch = await bcrypt.compare(logindata.password, user.password);
