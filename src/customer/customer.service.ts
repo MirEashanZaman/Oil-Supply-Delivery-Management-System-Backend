@@ -14,7 +14,7 @@ export class CustomerService {
         @InjectRepository(OrderEntity) private orderRepository: Repository<OrderEntity>,
     ) { }
     getCustomer(): string {
-        return "Customer";
+        return "Eashan";
     }
 
     async getAllCustomer(): Promise<CustomerEntity[]> {
@@ -62,8 +62,12 @@ export class CustomerService {
         return this.customerRepository.findOneBy({ username });
     }
 
-    async deleteByUsername(username: string): Promise<void> {
-        await this.customerRepository.delete({ username });
+    async findByEmail(email: string): Promise<CustomerEntity | null> {
+        return this.customerRepository.findOneBy({ email });
+    }
+
+    async deleteByEmail(email: string): Promise<void> {
+        await this.customerRepository.delete({ email });
     }
 
 }

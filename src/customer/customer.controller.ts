@@ -1,19 +1,22 @@
-import { Controller, Get, Param, Query, Post, Body, Put, ValidationPipe, UsePipes, UseInterceptors, UploadedFile, Res, Delete } from "@nestjs/common";
+import { Controller, Get, Param, Query, Post, Body, Put, ValidationPipe, UsePipes, UseInterceptors, UploadedFile, Res, Delete, UseGuards } from "@nestjs/common";
 import { CustomerService } from "./customer.service"
 import { CustomerDTO } from "./customer.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { diskStorage, MulterError } from 'multer';
 import type { Response } from 'express';
 import { CustomerEntity } from "./customer.entity";
+import { AuthGuard } from "./auth/auth.guard";
 
 @Controller('customer')
 export class CustomerController {
     constructor(private readonly customerService: CustomerService) { }
+    @UseGuards(AuthGuard)
     @Get()
     getCustomer(): string {
         return this.customerService.getCustomer();
     }
 
+    @UseGuards(AuthGuard)
     @Get('getallcustomer')
     getAllCustomer(): Promise<any> {
         return this.customerService.getAllCustomer();
@@ -75,11 +78,8 @@ export class CustomerController {
         return this.customerService.findByUsername(username);
     }
 
-    @Delete(':username')
-    deleteByUsername(@Param('username') username: string) {
-        return this.customerService.deleteByUsername(username);
+    @Delete(':usename')
+    deleteByEmail(@Param('usename') usename: string) {
+        return this.customerService.deleteByEmail(usename);
     }
-
-
-
 }
