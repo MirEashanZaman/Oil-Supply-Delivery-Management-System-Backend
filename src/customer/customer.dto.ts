@@ -24,3 +24,13 @@ export class CustomerDTO {
     @Matches(/^\d{10,17}$/, { message: "NID must be 10–17 digits" })
     nid?: string;
 }
+
+export class loginDTO {
+    @IsNotEmpty({ message: "Username is required" })
+    @IsString()
+    username?: string;
+
+    @IsNotEmpty({ message: "Password is required" })
+    @IsString()
+    password?: string;
+}
