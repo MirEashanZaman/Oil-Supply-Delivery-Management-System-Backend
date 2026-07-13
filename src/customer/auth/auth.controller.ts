@@ -9,7 +9,7 @@ export class AuthController {
     constructor(private authService: AuthService) { }
 
     @Post('register')
-    @UseInterceptors(FileInterceptor('myfile',
+    @UseInterceptors(FileInterceptor('nidImage',
         {
             fileFilter: (req, file, cb) => {
                 if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/))
@@ -18,7 +18,7 @@ export class AuthController {
                     cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'image'), false);
                 }
             },
-            limits: { fileSize: 30000 },
+            limits: { fileSize: 30000000 },
             storage: diskStorage({
                 destination: './upload',
                 filename: function (req, file, cb) {
@@ -29,6 +29,9 @@ export class AuthController {
     ))
     @UsePipes(new ValidationPipe)
     async addUser(@Body() myobj: CustomerDTO, @UploadedFile() myfile: Express.Multer.File): Promise<CustomerDTO> {
+        if (!myobj.password) {
+            myobj.password = "";
+        }
         const salt = await bcrypt.genSalt();
         const hashedpassword = await bcrypt.hash(myobj.password, salt);
         myobj.password = hashedpassword;
