@@ -6,6 +6,7 @@ import { SupplierModule } from './supplier/supplier.module';
 import { DealerModule } from './dealer/dealer.module';
 import { AdminModule } from './admin/admin.module';
 import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
+import { AuthModule } from './customer/auth/auth.module';
 
 @Module({
   imports: [AdminModule, CustomerModule, SupplierModule, DealerModule, TypeOrmModule.forRoot(
@@ -18,7 +19,7 @@ import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
       database: 'Oil-Supply-Delivery-Management-System',//Change to your database name
       autoLoadEntities: true,
       synchronize: true,
-    }),],
+    }), AuthModule,],
 
   controllers: [AppController],
   providers: [AppService],
