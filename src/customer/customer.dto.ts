@@ -26,9 +26,8 @@ export class CustomerDTO {
 }
 
 export class loginDTO {
-    @IsNotEmpty({ message: "Username is required" })
-    @IsString()
-    username?: string;
+    @IsNotEmpty({ message: "Email is required" })
+    @IsEmail() email?: string;
 
     @IsNotEmpty({ message: "Password is required" })
     @IsString()
