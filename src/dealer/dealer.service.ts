@@ -35,4 +35,8 @@ export class DealerService {
   async deleteDealer(id: number): Promise<void> {
     await this.dealerRepository.delete(id);
   }
+
+  async findByEmail(email: string): Promise<Dealer | null> {
+    return await this.dealerRepository.findOneBy({ email });
+  }
 }
