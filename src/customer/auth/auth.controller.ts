@@ -21,7 +21,7 @@ export class AuthController {
             },
             limits: { fileSize: 30000000 },
             storage: diskStorage({
-                destination: './upload',
+                destination: './uploads',
                 filename: function (req, file, cb) {
                     cb(null, Date.now() + file.originalname)
                 },
