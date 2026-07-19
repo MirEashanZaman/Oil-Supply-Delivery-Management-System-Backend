@@ -34,8 +34,24 @@ export class AdminEntity {
     @Column({ nullable: true })
     nid?: string;
 
+    @Column({ nullable: true })
+    adminId?: string;
+
+    @Column({ nullable: true })
+    phoneNumber?: string;
+
+    @Column({ nullable: true })
+    userName?: string;
+
+    @Column({ nullable: true })
+    address?: string;
+
+    @Column({ nullable: true })
+    title?: string;
+
     @BeforeInsert()
     generateUuid() {
         this.uniqueId = randomUUID();
+        this.adminId = this.uniqueId;
     }
 }
