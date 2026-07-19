@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { CustomerDTO } from "./customer.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CustomerEntity } from './customer.entity';
-import { ILike, Repository } from "typeorm";
+import { Like, Repository } from "typeorm";
 import { OrderEntity } from '../order/order.entity';
 
 
@@ -18,7 +18,8 @@ export class CustomerService {
     }
 
     async getAllCustomer(): Promise<CustomerEntity[]> {
-        return this.customerRepository.find({ relations: { orders: true } });
+        return this.customerRepository.find({ relations: { orders: true } 
+        });
     }
 
     async getCustomerByID(id: number): Promise<CustomerEntity | null> {
@@ -54,7 +55,7 @@ export class CustomerService {
 
     async findByFullNameSubstring(fullName: string): Promise<CustomerEntity[]> {
         return this.customerRepository.find({
-            where: { fullName: ILike(`%${fullName}%`) },
+            where: { fullName: Like(`%${fullName}%`) },
         });
     }
 
@@ -66,8 +67,9 @@ export class CustomerService {
         return this.customerRepository.findOneBy({ email });
     }
 
-    async deleteByEmail(email: string): Promise<void> {
-        await this.customerRepository.delete({ email });
+    async deleteByUsername(username: string): Promise<void> {
+        await this.customerRepository.delete({ username });
     }
 
 }
+

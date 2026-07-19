@@ -10,13 +10,13 @@ import { AuthGuard } from "./auth/auth.guard";
 @Controller('customer')
 export class CustomerController {
     constructor(private readonly customerService: CustomerService) { }
-    @UseGuards(AuthGuard)
+
     @Get()
     getCustomer(): string {
         return this.customerService.getCustomer();
     }
 
-    @UseGuards(AuthGuard)
+
     @Get('getallcustomer')
     getAllCustomer(): Promise<any> {
         return this.customerService.getAllCustomer();
@@ -78,8 +78,8 @@ export class CustomerController {
         return this.customerService.findByUsername(username);
     }
 
-    @Delete(':usename')
-    deleteByEmail(@Param('usename') usename: string) {
-        return this.customerService.deleteByEmail(usename);
+    @Delete(':username')
+    deleteByUsername(@Param('username') username: string) {
+        return this.customerService.deleteByUsername(username);
     }
 }
