@@ -5,10 +5,6 @@ export class DealerDTO {
     @IsString()
     fullName?: string;
 
-    @IsOptional()
-    @IsBoolean()
-    isActive?: boolean;
-
     @IsNotEmpty()
     @IsString()
     @Matches(/^\d+$/, { message: "Phone number must contain only numbers" })
@@ -21,6 +17,26 @@ export class DealerDTO {
 
     password?: string;
     filename?: string;
+
+    @IsOptional()
+    @IsString()
+    dealerId?: string;
+
+    @IsOptional()
+    @IsString()
+    phoneNumber?: string;
+
+    @IsOptional()
+    @IsString()
+    userName?: string;
+
+    @IsOptional()
+    @IsString()
+    address?: string;
+
+    @IsOptional()
+    @IsString()
+    title?: string;
 
     @IsNotEmpty({ message: "NID can't be empty" })
     @Matches(/^\d{10,17}$/, { message: "NID must be 10–17 digits" })

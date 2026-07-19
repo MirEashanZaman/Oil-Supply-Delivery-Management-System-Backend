@@ -1,12 +1,10 @@
 import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert } from 'typeorm';
+import { randomUUID } from 'crypto';
 
 @Entity()
 export class Dealer {
     @PrimaryGeneratedColumn()
     id?: number;
-
-    @Column({ default: true })
-    isActive?: boolean;
 
     @Column({ type: 'varchar', nullable: true })
     fullName?: string;
@@ -26,10 +24,23 @@ export class Dealer {
     @Column({ nullable: true })
     nid?: string;
 
+    @Column({ nullable: true })
+    dealerId?: string;
+
+    @Column({ nullable: true })
+    phoneNumber?: string;
+
+    @Column({ nullable: true })
+    userName?: string;
+
+    @Column({ nullable: true })
+    address?: string;
+
+    @Column({ nullable: true })
+    title?: string;
+
     @BeforeInsert()
-    generateId(): void {
-        if (!this.id) {
-            this.id = Math.floor(Math.random() * 1000000);
-        }
+    generateDealerId(): void {
+        this.dealerId = randomUUID();
     }
 }
