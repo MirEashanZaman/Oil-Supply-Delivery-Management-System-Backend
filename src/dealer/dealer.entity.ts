@@ -14,6 +14,18 @@ export class Dealer {
     @Column({ type: 'bigint', unsigned: true })
     phone?: number;
 
+    @Column({ unique: true })
+    email?: string;
+
+    @Column()
+    password?: string;
+
+    @Column({ nullable: true })
+    filename?: string;
+
+    @Column({ nullable: true })
+    nid?: string;
+
     @BeforeInsert()
     generateId(): void {
         if (!this.id) {
