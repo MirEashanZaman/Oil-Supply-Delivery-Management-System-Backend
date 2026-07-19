@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsEmail, Matches } from "class-validator";
+import { IsNotEmpty, IsString, IsEmail, Matches, IsOptional } from "class-validator";
 
 export class CustomerDTO {
     @IsNotEmpty()
@@ -18,6 +18,18 @@ export class CustomerDTO {
 
     password?: string;
     filename?: string;
+
+    @IsOptional()
+    @IsString()
+    phoneNumber?: string;
+
+    @IsOptional()
+    @IsString()
+    address?: string;
+
+    @IsOptional()
+    @IsString()
+    title?: string;
 
     @IsNotEmpty({ message: "NID can't be empty" })
     @Matches(/^\d{10,17}$/, { message: "NID must be 10–17 digits" })
