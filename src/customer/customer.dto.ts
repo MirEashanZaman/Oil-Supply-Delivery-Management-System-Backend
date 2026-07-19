@@ -18,7 +18,6 @@ export class CustomerDTO {
 
     password?: string;
     filename?: string;
-    isActive?: boolean;
 
     @IsNotEmpty({ message: "NID can't be empty" })
     @Matches(/^\d{10,17}$/, { message: "NID must be 10–17 digits" })
