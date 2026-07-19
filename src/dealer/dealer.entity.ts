@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert } from 'typeorm';
+import { randomUUID } from 'crypto';
 
 @Entity()
 export class Dealer {
@@ -22,4 +23,24 @@ export class Dealer {
 
     @Column({ nullable: true })
     nid?: string;
+
+    @Column({ nullable: true })
+    dealerId?: string;
+
+    @Column({ nullable: true })
+    phoneNumber?: string;
+
+    @Column({ nullable: true })
+    userName?: string;
+
+    @Column({ nullable: true })
+    address?: string;
+
+    @Column({ nullable: true })
+    title?: string;
+
+    @BeforeInsert()
+    generateDealerId(): void {
+        this.dealerId = randomUUID();
+    }
 }
