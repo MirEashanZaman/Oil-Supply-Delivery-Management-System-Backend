@@ -10,4 +10,16 @@ export class SupplierEntity {
     @Column({ type: 'enum', enum: ['active', 'inactive'], default: 'active' })
     status?: string;
 
+    @Column({ unique: true })
+    email?: string;
+
+    @Column()
+    password?: string;
+
+    @Column({ nullable: true })
+    filename?: string;
+
+    @Column({ nullable: true })
+    nid?: string;
+
 }
