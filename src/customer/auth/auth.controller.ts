@@ -1,8 +1,9 @@
-import { Body, Controller, Post, UsePipes, UseInterceptors, UploadedFile, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Post, UsePipes, UseInterceptors, UploadedFile, ValidationPipe, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CustomerDTO, loginDTO } from 'src/customer/customer.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MulterError, diskStorage } from 'multer';
+import * as express from 'express';
 import * as bcrypt from 'bcrypt';
 @Controller('auth')
 export class AuthController {
@@ -38,10 +39,27 @@ export class AuthController {
         myobj.filename = myfile.filename;
         return this.authService.signUp(myobj);
     }
-    @Post('login')
-    signIn(@Body() logindata: loginDTO) {
-        return this.authService.signIn(logindata);
+
+    @Post('signIn')
+    async signIn(
+        @Body() logindata: loginDTO,
+        @Res({ passthrough: true }) res: express.Response,
+    ) {
+        const result = await this.authService.signIn(logindata);
+
+        res.cookie("access_token", result.access_token, {
+            httpOnly: true,
+            sameSite: "none",
+            secure: false,
+            path: "/",
+            maxAge: 300 * 60 * 1000,
+        });
+        return {
+            message: 'Login successful',
+            user: result,
+        };
     }
+
 
 
 }
