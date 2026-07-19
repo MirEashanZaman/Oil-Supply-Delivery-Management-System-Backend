@@ -44,7 +44,11 @@ export class SupplierService {
 
     getSupplierOld40(): Promise<SupplierEntity[]> {
         return this.SupplierRepository.createQueryBuilder("supplier").where("supplier.age>:age", { age: 40 }).getMany();
-    };
+    }
+
+    async findByEmail(email: string): Promise<SupplierEntity | null> {
+        return await this.SupplierRepository.findOneBy({ email });
+    }
 }
 
 
