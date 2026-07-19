@@ -18,6 +18,15 @@ export class CustomerEntity {
     @Column()
     filename?: string;
 
+    @Column({ nullable: true })
+    phoneNumber?: string;
+
+    @Column({ nullable: true })
+    address?: string;
+
+    @Column({ nullable: true })
+    title?: string;
+
     @OneToMany(() => OrderEntity, order => order.customer)
     orders?: OrderEntity[];
 }
