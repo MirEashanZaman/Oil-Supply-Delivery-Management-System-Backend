@@ -8,5 +8,6 @@ import { DealerController } from './dealer.controller';
   imports: [TypeOrmModule.forFeature([Dealer])],
   controllers: [DealerController],
   providers: [DealerService],
+  exports: [DealerService],
 })
 export class DealerModule { }
