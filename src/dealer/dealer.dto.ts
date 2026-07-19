@@ -5,10 +5,6 @@ export class DealerDTO {
     @IsString()
     fullName?: string;
 
-    @IsOptional()
-    @IsBoolean()
-    isActive?: boolean;
-
     @IsNotEmpty()
     @IsString()
     @Matches(/^\d+$/, { message: "Phone number must contain only numbers" })
