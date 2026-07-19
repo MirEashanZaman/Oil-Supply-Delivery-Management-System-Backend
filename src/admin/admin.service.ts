@@ -52,4 +52,8 @@ export class AdminService {
             },
         });
     }
+
+    async findByEmail(email: string): Promise<AdminEntity | null> {
+        return await this.adminRepo.findOneBy({ email });
+    }
 }

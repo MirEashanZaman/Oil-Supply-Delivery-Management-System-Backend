@@ -22,6 +22,18 @@ export class AdminEntity {
     })
     country?: string;
 
+    @Column({ unique: true })
+    email?: string;
+
+    @Column()
+    password?: string;
+
+    @Column({ nullable: true })
+    filename?: string;
+
+    @Column({ nullable: true })
+    nid?: string;
+
     @BeforeInsert()
     generateUuid() {
         this.uniqueId = randomUUID();
