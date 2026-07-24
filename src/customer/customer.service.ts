@@ -75,6 +75,14 @@ export class CustomerService {
         });
     }
 
+    async trackOrderStatus(orderId: number) {
+        const order = await this.orderRepository.findOneBy({ id: orderId });
+        if (!order) {
+            return { message: "Order not found" };
+        }
+        return { orderId: orderId, status: "Processing", order: order };
+    }
+
     async findByUsername(username: string): Promise<CustomerEntity | null> {
         return this.customerRepository.findOneBy({ username });
     }

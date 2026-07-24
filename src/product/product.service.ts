@@ -42,4 +42,29 @@ export class ProductService {
         product.quantity = quantity;
         return this.productRepository.save(product);
     }
+
+    async createProduct(productData: Partial<Product>): Promise<Product> {
+        const product = this.productRepository.create(productData);
+        return this.productRepository.save(product);
+    }
+
+    async getAllProducts(): Promise<Product[]> {
+        return this.productRepository.find({ relations: { categories: true } });
+    }
+
+    async updatePrice(productId: number, price: number): Promise<Product | { message: string }> {
+        if (price < 0) {
+            return { message: "Price cannot be less than 0" };
+        }
+        const product = await this.productRepository.findOneBy({ id: productId });
+        if (!product) {
+            return { message: "Product not found" };
+        }
+        product.price = price;
+        return this.productRepository.save(product);
+    }
+
+    async updateStock(productId: number, stock: number): Promise<Product | { message: string }> {
+        return this.updateProductQuantity(productId, stock);
+    }
 }

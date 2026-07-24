@@ -62,10 +62,13 @@ export class SupplierController {
         return this.supplierService.getSupplierOld40();
     }
 
+    @Put('confirmorder/:id')
+    confirmOrder(@Param('id') id: string, @Body('status') status?: string) {
+        return this.supplierService.confirmOrder(Number(id), status);
+    }
 
-    /*@Get('/getfile/:name')
-    getfile(@Param('name') name: string, @Res() res: Response) {
-        res.sendFile(name, { root: './uploads' })
-    }*/
-
+    @Post('scheduledelivery')
+    scheduleDelivery(@Body('orderId') orderId: number, @Body('deliveryDate') deliveryDate: string) {
+        return this.supplierService.scheduleDelivery(orderId, deliveryDate);
+    }
 }

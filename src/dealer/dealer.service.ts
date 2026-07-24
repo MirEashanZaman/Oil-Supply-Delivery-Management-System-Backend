@@ -39,4 +39,16 @@ export class DealerService {
   async findByEmail(email: string): Promise<Dealer | null> {
     return await this.dealerRepository.findOneBy({ email });
   }
+
+  async getAllDealers(): Promise<Dealer[]> {
+    return this.dealerRepository.find();
+  }
+
+  placeOrder(orderData: any) {
+    return { order: orderData, status: 'placed', message: 'Order placed by dealer' };
+  }
+
+  trackOrderStatus(orderId: number) {
+    return { orderId: orderId, status: 'in-transit', message: 'Tracking status retrieved' };
+  }
 }
