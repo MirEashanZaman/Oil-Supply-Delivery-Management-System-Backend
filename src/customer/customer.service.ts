@@ -4,10 +4,8 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { CustomerEntity } from './customer.entity';
 import { Like, Repository } from "typeorm";
 import { OrderEntity } from '../order/order.entity';
-
-
-
 import { Product } from '../product/product.entity';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class CustomerService {
@@ -15,14 +13,23 @@ export class CustomerService {
         @InjectRepository(CustomerEntity) private customerRepository: Repository<CustomerEntity>,
         @InjectRepository(OrderEntity) private orderRepository: Repository<OrderEntity>,
         @InjectRepository(Product) private productRepository: Repository<Product>,
+        private mailerService: MailerService,
     ) { }
+
+    async sendEmail(to: string, subject: string, text: string) {
+        return await this.mailerService.sendMail({
+            to: to,
+            subject: subject,
+            text: text,
+        });
+    }
+
     getCustomer(): string {
         return "Eashan";
     }
 
     async getAllCustomer(): Promise<CustomerEntity[]> {
-        return this.customerRepository.find({ relations: { orders: true } 
-        });
+        return this.customerRepository.find({ relations: { orders: true } });
     }
 
     async getCustomerByID(id: number): Promise<CustomerEntity | null> {

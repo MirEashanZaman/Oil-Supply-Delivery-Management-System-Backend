@@ -51,4 +51,13 @@ export class DealerController {
   patchDealer(@Param('id') id: string, @Body() data: Partial<DealerDTO>) {
     return this.dealerService.patchDealer(Number(id), data);
   }
+
+  @Post('send-email')
+  async sendEmail(
+    @Body('to') to: string,
+    @Body('subject') subject: string,
+    @Body('text') text: string,
+  ) {
+    return this.dealerService.sendEmail(to, subject, text);
+  }
 }

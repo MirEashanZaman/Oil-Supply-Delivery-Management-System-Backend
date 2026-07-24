@@ -78,4 +78,13 @@ export class SupplierController {
     deleteSupplier(@Param('id') id: string) {
         return this.supplierService.deleteSupplier(Number(id));
     }
+
+    @Post('send-email')
+    async sendEmail(
+        @Body('to') to: string,
+        @Body('subject') subject: string,
+        @Body('text') text: string,
+    ) {
+        return this.supplierService.sendEmail(to, subject, text);
+    }
 }

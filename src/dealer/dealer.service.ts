@@ -3,13 +3,23 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { Dealer } from './dealer.entity';
 import { DealerDTO } from './dealer.dto';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class DealerService {
   constructor(
     @InjectRepository(Dealer)
     private dealerRepository: Repository<Dealer>,
+    private mailerService: MailerService,
   ) {}
+
+  async sendEmail(to: string, subject: string, text: string) {
+    return await this.mailerService.sendMail({
+      to: to,
+      subject: subject,
+      text: text,
+    });
+  }
 
   createDealer(dealerData: DealerDTO): Promise<Dealer> {
     const newDealer: Dealer = this.dealerRepository.create({

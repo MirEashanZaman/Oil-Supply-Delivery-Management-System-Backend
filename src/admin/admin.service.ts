@@ -3,6 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { AdminEntity } from "./admin.entity";
 import { AdminDTO } from "./admin.dto";
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class AdminService {
@@ -10,7 +11,16 @@ export class AdminService {
     constructor(
         @InjectRepository(AdminEntity)
         private adminRepo: Repository<AdminEntity>,
+        private mailerService: MailerService,
     ) { }
+
+    async sendEmail(to: string, subject: string, text: string) {
+        return await this.mailerService.sendMail({
+            to: to,
+            subject: subject,
+            text: text,
+        });
+    }
 
     getAdmin(): string {
         return "Admin";
