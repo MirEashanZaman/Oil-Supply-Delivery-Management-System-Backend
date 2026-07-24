@@ -30,4 +30,16 @@ export class ProductService {
     async getProductsWithCategories(): Promise<Product[]> {
         return this.productRepository.find({ relations: { categories: true } });
     }
+
+    async updateProductQuantity(productId: number, quantity: number): Promise<Product | { message: string }> {
+        if (quantity < 0) {
+            return { message: "Quantity cannot be less than 0" };
+        }
+        const product = await this.productRepository.findOneBy({ id: productId });
+        if (!product) {
+            return { message: "Product not found" };
+        }
+        product.quantity = quantity;
+        return this.productRepository.save(product);
+    }
 }
