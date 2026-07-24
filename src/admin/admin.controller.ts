@@ -49,4 +49,9 @@ export class AdminController {
     getUnknownCountryUsers(): Promise<AdminEntity[]> {
         return this.adminService.getUnknownCountryUsers();
     }
+
+    @Get('monitor-data')
+    monitorData() {
+        return this.adminService.monitorData();
+    }
 }
