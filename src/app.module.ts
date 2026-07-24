@@ -10,9 +10,12 @@ import { AuthModule } from './customer/auth/auth.module';
 import { AuthModule as AdminAuthModule } from './admin/auth/auth.module';
 import { AuthModule as DealerAuthModule } from './dealer/auth/auth.module';
 import { AuthModule as SupplierAuthModule } from './supplier/auth/auth.module';
+import { UsersModule } from './Users/users.module';
+import { CategoryModule } from './category/category.module';
+import { ProductModule } from './product/product.module';
 
 @Module({
-  imports: [AdminModule, CustomerModule, SupplierModule, DealerModule, TypeOrmModule.forRoot(
+  imports: [AdminModule, CustomerModule, SupplierModule, DealerModule, CategoryModule, ProductModule, TypeOrmModule.forRoot(
     {
       type: 'postgres',
       host: 'localhost',
@@ -22,7 +25,7 @@ import { AuthModule as SupplierAuthModule } from './supplier/auth/auth.module';
       database: 'Oil-Supply-Delivery-Management-System',//Change to your database name
       autoLoadEntities: true,
       synchronize: true,
-    }), AuthModule, AdminAuthModule, DealerAuthModule, SupplierAuthModule,],
+    }), AuthModule, AdminAuthModule, DealerAuthModule, SupplierAuthModule, UsersModule,],
 
   controllers: [AppController],
   providers: [AppService],
