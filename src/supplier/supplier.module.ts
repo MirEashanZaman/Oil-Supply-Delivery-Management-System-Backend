@@ -1,11 +1,26 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { MailerModule } from '@nestjs-modules/mailer';
 import { SupplierController } from './supplier.controller';
 import { SupplierService } from './supplier.service';
 import { SupplierEntity } from "./supplier.entity";
-import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([SupplierEntity]),],
+    imports: [
+        TypeOrmModule.forFeature([SupplierEntity]),
+        MailerModule.forRoot({
+            transport: {
+                host: 'smtp.gmail.com',
+                port: 465,
+                ignoreTLS: true,
+                secure: true,
+                auth: {
+                    user: 'your gmail account',
+                    pass: 'generated password',
+                },
+            },
+        }),
+    ],
     controllers: [SupplierController],
     providers: [SupplierService],
     exports: [SupplierService],
