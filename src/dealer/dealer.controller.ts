@@ -31,4 +31,19 @@ export class DealerController {
   deleteDealer(@Param('id') id: string): Promise<void> {
     return this.dealerService.deleteDealer(Number(id));
   }
+
+  @Get('all')
+  getAllDealers(): Promise<Dealer[]> {
+    return this.dealerService.getAllDealers();
+  }
+
+  @Post('placeorder')
+  placeOrder(@Body() orderData: any) {
+    return this.dealerService.placeOrder(orderData);
+  }
+
+  @Get('trackorder/:id')
+  trackOrderStatus(@Param('id') id: string) {
+    return this.dealerService.trackOrderStatus(Number(id));
+  }
 }
