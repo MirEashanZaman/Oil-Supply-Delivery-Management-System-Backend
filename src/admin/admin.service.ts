@@ -65,4 +65,13 @@ export class AdminService {
             monitoredAt: new Date(),
         };
     }
+
+    async deleteAdmin(id: number): Promise<void> {
+        await this.adminRepo.delete(id);
+    }
+
+    async patchAdmin(id: number, data: Partial<AdminDTO>): Promise<AdminEntity | null> {
+        await this.adminRepo.update(id, data);
+        return this.adminRepo.findOneBy({ id });
+    }
 }

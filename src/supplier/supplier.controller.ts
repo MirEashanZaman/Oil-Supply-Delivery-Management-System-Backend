@@ -1,9 +1,6 @@
-import { Controller, Get, Param, Query, Body, Post, UsePipes, ValidationPipe, Put } from "@nestjs/common";
+import { Controller, Get, Param, Query, Body, Post, UsePipes, ValidationPipe, Put, Patch, Delete } from "@nestjs/common";
 import { SupplierService } from "./supplier.service"
 import { SupplierDTO } from "./supplier.dto";
-//import { FileInterceptor } from '@nestjs/platform-express';
-//import { diskStorage, MulterError } from 'multer';
-//import type { Response } from 'express';
 import { SupplierEntity } from "./supplier.entity";
 
 @Controller('supplier')
@@ -70,5 +67,15 @@ export class SupplierController {
     @Post('scheduledelivery')
     scheduleDelivery(@Body('orderId') orderId: number, @Body('deliveryDate') deliveryDate: string) {
         return this.supplierService.scheduleDelivery(orderId, deliveryDate);
+    }
+
+    @Patch(':id')
+    patchSupplier(@Param('id') id: string, @Body() data: Partial<SupplierDTO>) {
+        return this.supplierService.patchSupplier(Number(id), data);
+    }
+
+    @Delete(':id')
+    deleteSupplier(@Param('id') id: string) {
+        return this.supplierService.deleteSupplier(Number(id));
     }
 }

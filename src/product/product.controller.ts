@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Body, Param } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { Product } from './product.entity';
 
@@ -23,6 +23,11 @@ export class ProductController {
 
     @Put('update-stock/:id')
     async updateStock(@Param('id') id: string, @Body('stock') stock: number) {
+        return this.productService.updateStock(Number(id), stock);
+    }
+
+    @Patch('patch-stock/:id')
+    async patchStock(@Param('id') id: string, @Body('stock') stock: number) {
         return this.productService.updateStock(Number(id), stock);
     }
 }

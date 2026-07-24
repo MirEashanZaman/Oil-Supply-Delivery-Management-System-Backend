@@ -57,6 +57,15 @@ export class SupplierService {
     scheduleDelivery(orderId: number, deliveryDate: string) {
         return { orderId: orderId, deliveryDate: deliveryDate, message: "Delivery scheduled" };
     }
+
+    async deleteSupplier(id: number): Promise<void> {
+        await this.SupplierRepository.delete(id);
+    }
+
+    async patchSupplier(id: number, data: Partial<SupplierDTO>): Promise<SupplierEntity | null> {
+        await this.SupplierRepository.update(id, data);
+        return this.SupplierRepository.findOneBy({ id });
+    }
 }
 
 

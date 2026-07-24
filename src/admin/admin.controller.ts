@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Query, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Put, Patch, Delete, Query, UsePipes, ValidationPipe } from "@nestjs/common";
 import { AdminService } from "./admin.service";
 import { AdminDTO } from "./admin.dto";
 import { AdminEntity } from "./admin.entity";
@@ -53,5 +53,15 @@ export class AdminController {
     @Get('monitor-data')
     monitorData() {
         return this.adminService.monitorData();
+    }
+
+    @Patch(':id')
+    patchAdmin(@Param('id') id: string, @Body() data: Partial<AdminDTO>) {
+        return this.adminService.patchAdmin(Number(id), data);
+    }
+
+    @Delete(':id')
+    deleteAdmin(@Param('id') id: string) {
+        return this.adminService.deleteAdmin(Number(id));
     }
 }

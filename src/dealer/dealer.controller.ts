@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Patch, Param, Delete, UsePipes, ValidationPipe } from '@nestjs/common';
 import { DealerService } from './dealer.service';
 import { Dealer } from './dealer.entity';
 import { DealerDTO } from './dealer.dto';
@@ -45,5 +45,10 @@ export class DealerController {
   @Get('trackorder/:id')
   trackOrderStatus(@Param('id') id: string) {
     return this.dealerService.trackOrderStatus(Number(id));
+  }
+
+  @Patch(':id')
+  patchDealer(@Param('id') id: string, @Body() data: Partial<DealerDTO>) {
+    return this.dealerService.patchDealer(Number(id), data);
   }
 }
