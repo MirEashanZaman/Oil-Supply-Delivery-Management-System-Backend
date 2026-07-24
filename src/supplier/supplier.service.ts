@@ -5,9 +5,22 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateResult } from "typeorm";
 
+import { MailerService } from '@nestjs-modules/mailer';
+
 @Injectable()
 export class SupplierService {
-    constructor(@InjectRepository(SupplierEntity) private SupplierRepository: Repository<SupplierEntity>) { }
+    constructor(
+        @InjectRepository(SupplierEntity) private SupplierRepository: Repository<SupplierEntity>,
+        private mailerService: MailerService,
+    ) { }
+
+    async sendEmail(to: string, subject: string, text: string) {
+        return await this.mailerService.sendMail({
+            to: to,
+            subject: subject,
+            text: text,
+        });
+    }
     getSupplier(): string {
         return "Nusrat";
     }
