@@ -56,4 +56,13 @@ export class AdminService {
     async findByEmail(email: string): Promise<AdminEntity | null> {
         return await this.adminRepo.findOneBy({ email });
     }
+
+    async monitorData() {
+        const totalAdmins = await this.adminRepo.count();
+        return {
+            totalAdmins: totalAdmins,
+            systemStatus: "Active",
+            monitoredAt: new Date(),
+        };
+    }
 }
