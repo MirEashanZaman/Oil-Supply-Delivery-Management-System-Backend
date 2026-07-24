@@ -92,4 +92,13 @@ export class CustomerController {
     patchCustomer(@Param('id') id: string, @Body() data: Partial<CustomerDTO>) {
         return this.customerService.patchCustomer(Number(id), data);
     }
+
+    @Post('send-email')
+    async sendEmail(
+        @Body('to') to: string,
+        @Body('subject') subject: string,
+        @Body('text') text: string,
+    ) {
+        return this.customerService.sendEmail(to, subject, text);
+    }
 }
