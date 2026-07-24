@@ -82,4 +82,9 @@ export class CustomerController {
     deleteByUsername(@Param('username') username: string) {
         return this.customerService.deleteByUsername(username);
     }
+
+    @Get('trackorder/:id')
+    trackOrderStatus(@Param('id') id: string) {
+        return this.customerService.trackOrderStatus(Number(id));
+    }
 }
