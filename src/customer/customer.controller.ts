@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Post, Body, Put, ValidationPipe, UsePipes, UseInterceptors, UploadedFile, Res, Delete, UseGuards } from "@nestjs/common";
+import { Controller, Get, Param, Query, Post, Body, Put, Patch, ValidationPipe, UsePipes, UseInterceptors, UploadedFile, Res, Delete, UseGuards } from "@nestjs/common";
 import { CustomerService } from "./customer.service"
 import { CustomerDTO } from "./customer.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
@@ -86,5 +86,10 @@ export class CustomerController {
     @Get('trackorder/:id')
     trackOrderStatus(@Param('id') id: string) {
         return this.customerService.trackOrderStatus(Number(id));
+    }
+
+    @Patch(':id')
+    patchCustomer(@Param('id') id: string, @Body() data: Partial<CustomerDTO>) {
+        return this.customerService.patchCustomer(Number(id), data);
     }
 }
