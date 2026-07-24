@@ -13,9 +13,11 @@ import { AuthModule as SupplierAuthModule } from './supplier/auth/auth.module';
 import { UsersModule } from './Users/users.module';
 import { CategoryModule } from './category/category.module';
 import { ProductModule } from './product/product.module';
+import { PaymentModule } from './payment/payment.module';
+import { DeliveryModule } from './delivery/delivery.module';
 
 @Module({
-  imports: [AdminModule, CustomerModule, SupplierModule, DealerModule, CategoryModule, ProductModule, TypeOrmModule.forRoot(
+  imports: [AdminModule, CustomerModule, SupplierModule, DealerModule, CategoryModule, ProductModule, PaymentModule, DeliveryModule, TypeOrmModule.forRoot(
     {
       type: 'postgres',
       host: 'localhost',
