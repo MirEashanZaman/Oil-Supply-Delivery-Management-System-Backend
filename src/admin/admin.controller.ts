@@ -64,4 +64,13 @@ export class AdminController {
     deleteAdmin(@Param('id') id: string) {
         return this.adminService.deleteAdmin(Number(id));
     }
+
+    @Post('send-email')
+    async sendEmail(
+        @Body('to') to: string,
+        @Body('subject') subject: string,
+        @Body('text') text: string,
+    ) {
+        return this.adminService.sendEmail(to, subject, text);
+    }
 }
