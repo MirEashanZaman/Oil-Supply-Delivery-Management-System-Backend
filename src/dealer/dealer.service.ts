@@ -51,4 +51,9 @@ export class DealerService {
   trackOrderStatus(orderId: number) {
     return { orderId: orderId, status: 'in-transit', message: 'Tracking status retrieved' };
   }
+
+  async patchDealer(id: number, data: Partial<DealerDTO>): Promise<Dealer | null> {
+    await this.dealerRepository.update(id, data as any);
+    return this.dealerRepository.findOneBy({ id });
+  }
 }
