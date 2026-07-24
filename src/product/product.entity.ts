@@ -6,6 +6,8 @@ export class Product {
     id?: number;
     @Column()
     name?: string;
+    @Column({ type: 'int', default: 0 })
+    quantity?: number;
     @OneToMany(() => Category, category => category.product)
     categories?: Category[];
 }
