@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Patch, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Body, Param } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { Product } from './product.entity';
 
@@ -29,5 +29,20 @@ export class ProductController {
     @Patch('patch-stock/:id')
     async patchStock(@Param('id') id: string, @Body('stock') stock: number) {
         return this.productService.updateStock(Number(id), stock);
+    }
+
+    @Post('add-category')
+    async addProductToCategory(@Body('productId') productId: number, @Body('categoryId') categoryId: number) {
+        return this.productService.addProductToCategory(productId, categoryId);
+    }
+
+    @Delete('remove-category/:productId/:categoryId')
+    async removeProductFromCategory(@Param('productId') productId: string, @Param('categoryId') categoryId: string) {
+        return this.productService.removeProductFromCategory(Number(productId), Number(categoryId));
+    }
+
+    @Get('with-categories')
+    async getProductsWithCategories() {
+        return this.productService.getProductsWithCategories();
     }
 }
