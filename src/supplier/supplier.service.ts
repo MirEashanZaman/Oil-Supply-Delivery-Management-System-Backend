@@ -49,6 +49,14 @@ export class SupplierService {
     async findByEmail(email: string): Promise<SupplierEntity | null> {
         return await this.SupplierRepository.findOneBy({ email });
     }
+
+    confirmOrder(orderId: number, status: string = 'confirmed') {
+        return { orderId: orderId, status: status, message: "Order confirmed by supplier" };
+    }
+
+    scheduleDelivery(orderId: number, deliveryDate: string) {
+        return { orderId: orderId, deliveryDate: deliveryDate, message: "Delivery scheduled" };
+    }
 }
 
 
