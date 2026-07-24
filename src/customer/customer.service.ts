@@ -95,5 +95,8 @@ export class CustomerService {
         await this.customerRepository.delete({ username });
     }
 
+    async patchCustomer(id: number, data: Partial<CustomerDTO>): Promise<CustomerEntity | null> {
+        await this.customerRepository.update(id, data as any);
+        return this.customerRepository.findOneBy({ id });
+    }
 }
-
