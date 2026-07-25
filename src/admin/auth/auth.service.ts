@@ -10,7 +10,7 @@ export class AuthService {
         private adminService: AdminService,
         private jwtService: JwtService
     ) { }
-    async signUp(myobj: AdminDTO): Promise<AdminDTO> {
+    async signUp(myobj: AdminDTO): Promise<any> {
         return await this.adminService.createAdmin(myobj);
     }
     async signIn(logindata: loginDTO): Promise<{ access_token: string }> {
