@@ -11,8 +11,8 @@ export class DealerDTO {
     phone: string;
 
     @IsNotEmpty({ message: "Email is required" })
-    @IsEmail({}, { message: "Email input must contain @ and .xyz domain" })
-    @Matches(/^[^\s@]+@[^\s@]+\.xyz$/i, { message: "Email input must contain @ and .xyz domain" })
+    @IsEmail({}, { message: "Email input must contain @ and .com domain" })
+    @Matches(/^[^\s@]+@[^\s@]+\.com$/i, { message: "Email input must contain @ and .com domain" })
     email: string;
 
     @IsNotEmpty({ message: "Password is required" })
