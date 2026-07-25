@@ -1,34 +1,36 @@
-import { Body, Controller, Get, Param, Post, Put, Patch, Delete, Query, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Put, Patch, Delete, Query, UsePipes, ValidationPipe, UseGuards } from "@nestjs/common";
+import { AuthGuard } from './auth/auth.guard';
 import { AdminService } from "./admin.service";
 import { AdminDTO } from "./admin.dto";
 import { AdminEntity } from "./admin.entity";
- 
+
+@UseGuards(AuthGuard)
 @Controller('admin')
 export class AdminController {
     constructor(private readonly adminService: AdminService) { }
- 
+
     @Get()
     getAdmin(): string {
         return this.adminService.getAdmin();
     }
- 
+
     @Get('getalladmin')
     getAllAdmin(): Promise<AdminEntity[]> {
         return this.adminService.getAllAdmin();
     }
- 
+
     @Get('getadminbyid/:myid')
     getAdminByID(@Param('myid') id: string): Promise<AdminEntity | null> {
         return this.adminService.getAdminByID(Number(id));
     }
- 
+
     @Post('createadmin')
     @UsePipes(new ValidationPipe())
     createAdmin(@Body() adminData: AdminDTO): Promise<AdminEntity> {
         return this.adminService.createAdmin(adminData);
     }
- 
- 
+
+
     @Put('updatecountry/:id')
     @UsePipes(new ValidationPipe())
     updateCountry(
@@ -37,14 +39,14 @@ export class AdminController {
     ): Promise<any> {
         return this.adminService.updateCountry(Number(id), country);
     }
- 
- 
+
+
     @Get('joiningdate')
     getByJoiningDate(@Query('date') date: string): Promise<AdminEntity[]> {
         return this.adminService.getByJoiningDate(date);
     }
- 
- 
+
+
     @Get('unknowncountry')
     getUnknownCountryUsers(): Promise<AdminEntity[]> {
         return this.adminService.getUnknownCountryUsers();
