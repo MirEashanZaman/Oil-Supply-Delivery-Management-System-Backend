@@ -11,7 +11,7 @@ export class AuthController {
     constructor(private authService: AuthService) { }
 
     @Post('register')
-    @UseInterceptors(FileInterceptor('nidImage',
+    @UseInterceptors(FileInterceptor('photo',
         {
             fileFilter: (req, file, cb) => {
                 if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/))
@@ -38,6 +38,7 @@ export class AuthController {
         const hashedpassword = await bcrypt.hash(myobj.password, salt);
         myobj.password = hashedpassword;
         myobj.filename = myfile.filename;
+        myobj.title = 'Admin';
         return this.authService.signUp(myobj);
     }
 
