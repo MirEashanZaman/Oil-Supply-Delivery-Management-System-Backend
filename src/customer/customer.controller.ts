@@ -8,6 +8,7 @@ import { CustomerEntity } from "./customer.entity";
 import { AuthGuard } from "./auth/auth.guard";
 
 @Controller('customer')
+@UseGuards(AuthGuard)
 export class CustomerController {
     constructor(private readonly customerService: CustomerService) { }
 
@@ -53,13 +54,28 @@ export class CustomerController {
 
     createCustomer(@UploadedFile() file: Express.Multer.File, @Body() customerData: CustomerDTO): Promise<CustomerEntity> {
         console.log(file?.filename);
-        customerData.filename = file?.filename;
-        return this.customerService.createCustomer(customerData);
+        const payload: any = { ...customerData, username: customerData.userName, filename: file?.filename };
+        return this.customerService.createCustomer(payload as any);
+    }
+
+    @Post(':id/orders')
+    async createOrder(@Param('id') id: string, @Body() orderData: any) {
+        return this.customerService.createOrder(id, orderData);
+    }
+
+    @Get(':id/orders')
+    async getOrdersByCustomer(@Param('id') id: string) {
+        return this.customerService.getOrdersByCustomerId(id);
+    }
+
+    @Delete(':id/orders/:orderId')
+    async deleteOrder(@Param('id') id: string, @Param('orderId') orderId: string) {
+        return this.customerService.deleteOrder(id, orderId);
     }
 
     @Put('updatecustomer/:id') //use for update data like forget password
     updateCustomer(@Param('id') id: string, @Body() customerData: CustomerDTO): CustomerDTO {
-        console.log(customerData.username)
+        console.log(customerData.userName)
         return this.customerService.updateCustomer(Number(id), customerData);
     }
 

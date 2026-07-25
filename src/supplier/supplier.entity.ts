@@ -1,5 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert, ManyToMany, JoinTable } from 'typeorm';
 import { randomUUID } from 'crypto';
+import { Product } from '../product/product.entity';
 
 @Entity("supplier")
 export class SupplierEntity {
@@ -38,6 +39,10 @@ export class SupplierEntity {
 
     @Column({ nullable: true })
     title?: string;
+
+    @ManyToMany(() => Product, product => product.suppliers)
+    @JoinTable({ name: 'supplier_products' })
+    products?: Product[];
 
     @BeforeInsert()
     generateSupplierId(): void {

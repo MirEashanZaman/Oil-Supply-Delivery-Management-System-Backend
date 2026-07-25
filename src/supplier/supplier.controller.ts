@@ -1,9 +1,11 @@
-import { Controller, Get, Param, Query, Body, Post, UsePipes, ValidationPipe, Put, Patch, Delete } from "@nestjs/common";
+import { Controller, Get, Param, Query, Body, Post, UsePipes, ValidationPipe, Put, Patch, Delete, UseGuards } from "@nestjs/common";
+import { AuthGuard } from './auth/auth.guard';
 import { SupplierService } from "./supplier.service"
 import { SupplierDTO } from "./supplier.dto";
 import { SupplierEntity } from "./supplier.entity";
 
 @Controller('supplier')
+@UseGuards(AuthGuard)
 export class SupplierController {
     constructor(private readonly supplierService: SupplierService) { }
     @Get()
@@ -35,6 +37,21 @@ export class SupplierController {
 
         console.log("Received Body:", supplierData);
         return this.supplierService.createSupplier(supplierData);
+    }
+
+    @Post(':id/products')
+    async assignProducts(@Param('id') id: string, @Body('productIds') productIds: number[]) {
+        return this.supplierService.assignProducts(Number(id), productIds);
+    }
+
+    @Get(':id/products')
+    async getProducts(@Param('id') id: string) {
+        return this.supplierService.getProducts(Number(id));
+    }
+
+    @Delete(':id/products/:productId')
+    async removeProduct(@Param('id') id: string, @Param('productId') productId: string) {
+        return this.supplierService.removeProduct(Number(id), Number(productId));
     }
 
 

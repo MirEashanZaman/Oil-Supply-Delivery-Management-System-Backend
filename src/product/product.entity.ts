@@ -1,5 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany } from 'typeorm';
 import { Category } from '../category/category.entity';
+import { Dealer } from '../dealer/dealer.entity';
+import { SupplierEntity } from '../supplier/supplier.entity';
 @Entity()
 export class Product {
     @PrimaryGeneratedColumn()
@@ -12,4 +14,9 @@ export class Product {
     price?: number;
     @OneToMany(() => Category, category => category.product)
     categories?: Category[];
+    @ManyToMany(() => Dealer, dealer => dealer.products)
+    dealers?: Dealer[];
+
+    @ManyToMany(() => SupplierEntity, supplier => supplier.products)
+    suppliers?: SupplierEntity[];
 }

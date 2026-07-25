@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 import { CustomerDTO } from "./customer.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CustomerEntity } from './customer.entity';
@@ -53,17 +53,17 @@ export class CustomerService {
     async createOrder(customerId: string, order: OrderEntity): Promise<any> {
         const customer = await this.customerRepository.findOneBy({ id: Number(customerId) });
         if (!customer) {
-            throw new Error('Customer not found');
+            throw new NotFoundException('Customer not found');
         }
 
         if (order.product && order.product.id) {
             const product = await this.productRepository.findOneBy({ id: order.product.id });
             if (!product || !product.quantity || product.quantity <= 0) {
-                return { message: "Low stock" };
+                throw new BadRequestException('Low stock');
             }
             const requestedQty = order.quantity || 1;
             if (product.quantity < requestedQty) {
-                return { message: "Low stock" };
+                throw new BadRequestException('Low stock');
             }
             product.quantity = product.quantity - requestedQty;
             await this.productRepository.save(product);
@@ -76,6 +76,18 @@ export class CustomerService {
         return this.orderRepository.find({ where: { customer: { id: Number(customerId) } } });
     }
 
+    async deleteOrder(customerId: string, orderId: string): Promise<{ message: string }> {
+        const order = await this.orderRepository.findOne({ where: { id: Number(orderId) }, relations: { customer: true } });
+        if (!order) {
+            throw new NotFoundException('Order not found');
+        }
+        if (!order.customer || order.customer.id !== Number(customerId)) {
+            throw new BadRequestException('Order does not belong to customer');
+        }
+        await this.orderRepository.delete(order.id as any);
+        return { message: 'Order deleted' };
+    }
+
     async findByFullNameSubstring(fullName: string): Promise<CustomerEntity[]> {
         return this.customerRepository.find({
             where: { fullName: Like(`%${fullName}%`) },
@@ -85,7 +97,7 @@ export class CustomerService {
     async trackOrderStatus(orderId: number) {
         const order = await this.orderRepository.findOneBy({ id: orderId });
         if (!order) {
-            return { message: "Order not found" };
+            throw new NotFoundException('Order not found');
         }
         return { orderId: orderId, status: "Processing", order: order };
     }

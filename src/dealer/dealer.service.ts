@@ -1,17 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { Dealer } from './dealer.entity';
 import { DealerDTO } from './dealer.dto';
 import { MailerService } from '@nestjs-modules/mailer';
+import { Product } from '../product/product.entity';
 
 @Injectable()
 export class DealerService {
   constructor(
     @InjectRepository(Dealer)
     private dealerRepository: Repository<Dealer>,
+    @InjectRepository(Product)
+    private productRepository: Repository<Product>,
     private mailerService: MailerService,
-  ) {}
+  ) { }
 
   async sendEmail(to: string, subject: string, text: string) {
     return await this.mailerService.sendMail({
@@ -24,14 +27,14 @@ export class DealerService {
   createDealer(dealerData: DealerDTO): Promise<Dealer> {
     const newDealer: Dealer = this.dealerRepository.create({
       ...dealerData,
-      phone: dealerData.phone ? Number(dealerData.phone) : undefined,
+      phone: dealerData.phoneNumber ? Number(dealerData.phoneNumber) : undefined,
     });
     return this.dealerRepository.save(newDealer);
   }
 
   async updatePhone(id: number, dealerData: DealerDTO): Promise<Dealer | null> {
     await this.dealerRepository.update(id, {
-      phone: dealerData.phone ? Number(dealerData.phone) : undefined,
+      phone: dealerData.phoneNumber ? Number(dealerData.phoneNumber) : undefined,
     });
     return this.dealerRepository.findOneBy({ id });
   }
@@ -65,5 +68,26 @@ export class DealerService {
   async patchDealer(id: number, data: Partial<DealerDTO>): Promise<Dealer | null> {
     await this.dealerRepository.update(id, data as any);
     return this.dealerRepository.findOneBy({ id });
+  }
+
+  async assignProducts(dealerId: number, productIds: number[]): Promise<Dealer> {
+    const dealer = await this.dealerRepository.findOne({ where: { id: dealerId }, relations: { products: true } });
+    if (!dealer) throw new NotFoundException('Dealer not found');
+    const products = await this.productRepository.createQueryBuilder('product').where('product.id IN (:...ids)', { ids: productIds }).getMany();
+    dealer.products = [...(dealer.products || []), ...products];
+    return this.dealerRepository.save(dealer);
+  }
+
+  async getProducts(dealerId: number): Promise<Product[]> {
+    const dealer = await this.dealerRepository.findOne({ where: { id: dealerId }, relations: { products: true } });
+    if (!dealer) throw new NotFoundException('Dealer not found');
+    return dealer.products || [];
+  }
+
+  async removeProduct(dealerId: number, productId: number): Promise<void> {
+    const dealer = await this.dealerRepository.findOne({ where: { id: dealerId }, relations: { products: true } });
+    if (!dealer) throw new NotFoundException('Dealer not found');
+    dealer.products = (dealer.products || []).filter(p => p.id !== productId);
+    await this.dealerRepository.save(dealer);
   }
 }

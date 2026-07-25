@@ -1,16 +1,6 @@
 import { IsNotEmpty, IsString, IsEmail, Matches, MinLength } from "class-validator";
 
 export class CustomerDTO {
-    @IsNotEmpty({ message: "Username is required" })
-    @IsString({ message: "Name must contain only Alphabets" })
-    @Matches(/^[A-Za-z]+$/, { message: "Name must contain only Alphabets" })
-    username?: string;
-
-    @IsNotEmpty({ message: "Full name is required" })
-    @IsString({ message: "Name must contain only letters and spaces" })
-    @Matches(/^[A-Za-z\s]+$/, { message: "Full name must contain only letters and spaces" })
-    fullName?: string;
-
     @IsNotEmpty({ message: "Email is required" })
     @IsEmail({}, { message: "Email input must contain @ and .com domain" })
     @Matches(/^[^\s@]+@[^\s@]+\.com$/i, { message: "Email input must contain @ and .com domain" })
@@ -21,25 +11,22 @@ export class CustomerDTO {
     @MinLength(8, { message: "Password must be at least 8 characters long" })
     password?: string;
 
-    @IsNotEmpty({ message: "Filename is required" })
-    @IsString()
     filename?: string;
+
 
     @IsNotEmpty({ message: "Phone number is required" })
     @IsString()
     phoneNumber?: string;
 
+    @IsNotEmpty({ message: "Username is required" })
+    @IsString()
+    userName?: string;
+
     @IsNotEmpty({ message: "Address is required" })
     @IsString()
     address?: string;
 
-    @IsNotEmpty({ message: "Title is required" })
-    @IsString()
     title?: string;
-
-    @IsNotEmpty({ message: "NID can't be empty" })
-    @Matches(/^\d{10,17}$/, { message: "NID must be 10–17 digits" })
-    nid?: string;
 }
 
 export class loginDTO {
