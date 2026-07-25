@@ -1,6 +1,5 @@
 import {
     IsString,
-    MaxLength,
     IsNotEmpty,
     IsEmail,
     Matches,
@@ -8,13 +7,6 @@ import {
 } from "class-validator";
 
 export class AdminDTO {
-    @IsNotEmpty({ message: "Country is required" })
-    @IsString({ message: "Country must be a string" })
-    @MaxLength(30, {
-        message: "Country cannot exceed 30 characters",
-    })
-    country?: string;
-
     @IsNotEmpty({ message: "Email is required" })
     @IsEmail({}, { message: "Email input must contain @ and .com domain" })
     @Matches(/^[^\s@]+@[^\s@]+\.com$/i, { message: "Email input must contain @ and .com domain" })
@@ -26,7 +18,6 @@ export class AdminDTO {
     password?: string;
 
     filename?: string;
-    adminId?: string;
 
     @IsNotEmpty({ message: "Phone number is required" })
     @IsString()
@@ -40,13 +31,7 @@ export class AdminDTO {
     @IsString()
     address?: string;
 
-    @IsNotEmpty({ message: "Title is required" })
-    @IsString()
     title?: string;
-
-    @IsNotEmpty({ message: "NID can't be empty" })
-    @Matches(/^\d{10,17}$/, { message: "NID must be 10–17 digits" })
-    nid?: string;
 }
 
 export class loginDTO {

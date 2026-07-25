@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Body, Put, Patch, Param, Delete, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Patch, Param, Delete, UsePipes, ValidationPipe, UseGuards } from '@nestjs/common';
+import { AuthGuard } from './auth/auth.guard';
 import { DealerService } from './dealer.service';
 import { Dealer } from './dealer.entity';
 import { DealerDTO } from './dealer.dto';
 
 @Controller('dealer')
+@UseGuards(AuthGuard)
 export class DealerController {
   constructor(private readonly dealerService: DealerService) { }
 
@@ -11,6 +13,21 @@ export class DealerController {
   @UsePipes(new ValidationPipe())
   createDealer(@Body() dealerData: DealerDTO): Promise<Dealer> {
     return this.dealerService.createDealer(dealerData);
+  }
+
+  @Post(':id/products')
+  async assignProducts(@Param('id') id: string, @Body('productIds') productIds: number[]) {
+    return this.dealerService.assignProducts(Number(id), productIds);
+  }
+
+  @Get(':id/products')
+  async getProducts(@Param('id') id: string) {
+    return this.dealerService.getProducts(Number(id));
+  }
+
+  @Delete(':id/products/:productId')
+  async removeProduct(@Param('id') id: string, @Param('productId') productId: string) {
+    return this.dealerService.removeProduct(Number(id), Number(productId));
   }
 
   @Put('updatephone/:id')
