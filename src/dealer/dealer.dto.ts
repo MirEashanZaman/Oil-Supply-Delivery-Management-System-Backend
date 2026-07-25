@@ -1,54 +1,59 @@
-import { IsNotEmpty, IsOptional, IsString, IsBoolean, Matches, IsEmail } from "class-validator";
+import { IsNotEmpty, IsString, Matches, IsEmail } from "class-validator";
 
 export class DealerDTO {
-    @IsOptional()
+    @IsNotEmpty({ message: "Full name is required" })
     @IsString()
-    fullName?: string;
+    fullName: string;
 
-    @IsNotEmpty()
+    @IsNotEmpty({ message: "Phone is required" })
     @IsString()
     @Matches(/^\d+$/, { message: "Phone number must contain only numbers" })
-    phone?: string;
+    phone: string;
 
     @IsNotEmpty({ message: "Email is required" })
-    @IsEmail({}, { message: "Email input must contain @ and .xyz domain" })
-    @Matches(/^[^\s@]+@[^\s@]+\.xyz$/i, { message: "Email input must contain @ and .xyz domain" })
-    email?: string;
+    @IsEmail({}, { message: "Email input must contain @ and .com domain" })
+    @Matches(/^[^\s@]+@[^\s@]+\.com$/i, { message: "Email input must contain @ and .com domain" })
+    email: string;
 
-    password?: string;
-    filename?: string;
-
-    @IsOptional()
+    @IsNotEmpty({ message: "Password is required" })
     @IsString()
-    dealerId?: string;
+    password: string;
 
-    @IsOptional()
+    @IsNotEmpty({ message: "Filename is required" })
     @IsString()
-    phoneNumber?: string;
+    filename: string;
 
-    @IsOptional()
+    @IsNotEmpty({ message: "Dealer ID is required" })
     @IsString()
-    userName?: string;
+    dealerId: string;
 
-    @IsOptional()
+    @IsNotEmpty({ message: "Phone number is required" })
     @IsString()
-    address?: string;
+    phoneNumber: string;
 
-    @IsOptional()
+    @IsNotEmpty({ message: "Username is required" })
     @IsString()
-    title?: string;
+    userName: string;
+
+    @IsNotEmpty({ message: "Address is required" })
+    @IsString()
+    address: string;
+
+    @IsNotEmpty({ message: "Title is required" })
+    @IsString()
+    title: string;
 
     @IsNotEmpty({ message: "NID can't be empty" })
     @Matches(/^\d{10,17}$/, { message: "NID must be 10–17 digits" })
-    nid?: string;
+    nid: string;
 }
 
 export class loginDTO {
     @IsNotEmpty({ message: "Email is required" })
     @IsEmail()
-    email?: string;
+    email: string;
 
     @IsNotEmpty({ message: "Password is required" })
     @IsString()
-    password?: string;
+    password: string;
 }

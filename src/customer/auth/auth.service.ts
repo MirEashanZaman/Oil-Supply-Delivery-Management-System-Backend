@@ -11,7 +11,7 @@ export class AuthService {
         private customerService: CustomerService,
         private jwtService: JwtService
     ) { }
-    async signUp(myobj: CustomerDTO): Promise<CustomerDTO> {
+    async signUp(myobj: CustomerDTO): Promise<any> {
         return await this.customerService.createCustomer(myobj);
     }
     async signIn(logindata: loginDTO): Promise<{ access_token: string }> {
