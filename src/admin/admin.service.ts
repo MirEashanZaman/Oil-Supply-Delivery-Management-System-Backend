@@ -1,9 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { AdminEntity } from "./admin.entity";
 import { AdminDTO } from "./admin.dto";
 import { MailerService } from '@nestjs-modules/mailer';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AdminService {
@@ -37,14 +38,21 @@ export class AdminService {
     }
 
     async createAdmin(adminData: AdminDTO): Promise<AdminEntity> {
-        const admin = this.adminRepo.create(adminData);
+        const existing = await this.adminRepo.findOneBy({ email: adminData.email as string });
+        if (existing) {
+            throw new HttpException('Admin already exists', HttpStatus.CONFLICT);
+        }
+
+        const isHashed = adminData.password && /^\$2[aby]\$\d{2}\$/.test(adminData.password);
+        const hashedPassword = adminData.password
+            ? (isHashed ? adminData.password : await bcrypt.hash(adminData.password, 10))
+            : undefined;
+
+        const admin = this.adminRepo.create({
+            ...adminData,
+            password: hashedPassword,
+        });
         return await this.adminRepo.save(admin);
-    }
-
-
-    async updateCountry(id: number, country: string): Promise<any> {
-        await this.adminRepo.update(id, { country });
-        return this.adminRepo.findOneBy({ id });
     }
 
 
@@ -53,14 +61,6 @@ export class AdminService {
             .createQueryBuilder("admin")
             .where("DATE(admin.joiningDate) = :date", { date })
             .getMany();
-    }
-
-    async getUnknownCountryUsers(): Promise<AdminEntity[]> {
-        return await this.adminRepo.find({
-            where: {
-                country: "Unknown",
-            },
-        });
     }
 
     async findByEmail(email: string): Promise<AdminEntity | null> {

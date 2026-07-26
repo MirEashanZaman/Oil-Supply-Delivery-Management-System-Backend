@@ -31,25 +31,9 @@ export class AdminController {
     }
 
 
-    @Put('updatecountry/:id')
-    @UsePipes(new ValidationPipe())
-    updateCountry(
-        @Param('id') id: string,
-        @Body('country') country: string,
-    ): Promise<any> {
-        return this.adminService.updateCountry(Number(id), country);
-    }
-
-
     @Get('joiningdate')
     getByJoiningDate(@Query('date') date: string): Promise<AdminEntity[]> {
         return this.adminService.getByJoiningDate(date);
-    }
-
-
-    @Get('unknowncountry')
-    getUnknownCountryUsers(): Promise<AdminEntity[]> {
-        return this.adminService.getUnknownCountryUsers();
     }
 
     @Get('monitor-data')

@@ -9,8 +9,8 @@ export class DeliveryEntity {
     @Column({ nullable: true })
     address?: string;
 
-    @Column({ type: 'double precision', default: 0 })
-    deliveryStatus?: number;
+    @Column({ default: 'pending' })
+    deliveryStatus?: string;
 
     @ManyToOne(() => OrderDetailsEntity, orderDetails => orderDetails.deliveries)
     orderDetails?: OrderDetailsEntity;

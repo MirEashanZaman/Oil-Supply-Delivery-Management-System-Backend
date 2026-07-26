@@ -7,9 +7,6 @@ export class Dealer {
     @PrimaryGeneratedColumn()
     id?: number;
 
-    @Column({ type: 'varchar', nullable: true })
-    fullName?: string;
-
     @Column({ type: 'bigint', unsigned: true })
     phone?: number;
 
@@ -21,9 +18,6 @@ export class Dealer {
 
     @Column({ nullable: true })
     filename?: string;
-
-    @Column({ nullable: true })
-    nid?: string;
 
     @Column({ nullable: true })
     dealerId?: string;

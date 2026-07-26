@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { Dealer } from './dealer.entity';
 import { DealerDTO } from './dealer.dto';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Product } from '../product/product.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class DealerService {
@@ -24,9 +25,19 @@ export class DealerService {
     });
   }
 
-  createDealer(dealerData: DealerDTO): Promise<Dealer> {
+  async createDealer(dealerData: DealerDTO): Promise<Dealer> {
+    const existing = await this.dealerRepository.findOneBy({ email: dealerData.email as string });
+    if (existing) {
+      throw new HttpException('Dealer already exists', HttpStatus.CONFLICT);
+    }
+
+    const isHashed = dealerData.password && /^\$2[aby]\$\d{2}\$/.test(dealerData.password);
+    const hashedPassword = dealerData.password
+      ? (isHashed ? dealerData.password : await bcrypt.hash(dealerData.password, 10))
+      : undefined;
     const newDealer: Dealer = this.dealerRepository.create({
       ...dealerData,
+      password: hashedPassword,
       phone: dealerData.phoneNumber ? Number(dealerData.phoneNumber) : undefined,
     });
     return this.dealerRepository.save(newDealer);
@@ -41,7 +52,7 @@ export class DealerService {
 
   async getDealersWithNoName(): Promise<Dealer[]> {
     return this.dealerRepository.find({
-      where: { fullName: IsNull() },
+      where: { userName: IsNull() },
     });
   }
 

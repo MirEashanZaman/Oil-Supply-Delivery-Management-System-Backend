@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 
 import { JwtService } from '@nestjs/jwt';
 import { CustomerService } from '../customer.service';
-import { CustomerDTO, loginDTO } from 'src/customer/customer.dto';
+import { CustomerDTO, loginDTO } from '../customer.dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -26,9 +26,8 @@ export class AuthService {
         if (!isMatch) {
             throw new UnauthorizedException();
         }
-        const payload = logindata;
         return {
-            access_token: await this.jwtService.signAsync(payload),
+            access_token: await this.jwtService.signAsync({ ...logindata }),
         };
     }
 }

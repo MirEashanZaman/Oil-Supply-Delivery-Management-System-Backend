@@ -4,6 +4,7 @@ import {
     IsEmail,
     Matches,
     MinLength,
+    IsOptional,
 } from "class-validator";
 
 export class AdminDTO {
@@ -17,6 +18,8 @@ export class AdminDTO {
     @MinLength(8, { message: "Password must be at least 8 characters long" })
     password?: string;
 
+    @IsOptional()
+    @IsString({ message: "Photo must be a string" })
     filename?: string;
 
     @IsNotEmpty({ message: "Phone number is required" })

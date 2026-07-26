@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsEmail, Matches, MinLength } from "class-validator";
+import { IsNotEmpty, IsString, IsEmail, Matches, MinLength, IsOptional } from "class-validator";
 
 export class SupplierDTO {
     @IsNotEmpty({ message: "Email is required" })
@@ -11,6 +11,8 @@ export class SupplierDTO {
     @MinLength(8, { message: "Password must be at least 8 characters long" })
     password?: string;
 
+    @IsOptional()
+    @IsString({ message: "Photo must be a string" })
     filename?: string;
 
     @IsNotEmpty({ message: "Phone number is required" })

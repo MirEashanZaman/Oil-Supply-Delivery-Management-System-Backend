@@ -6,13 +6,6 @@ export class AdminEntity {
     @PrimaryGeneratedColumn()
     id?: number;
 
-    @Column({
-        type: "varchar",
-        length: 30,
-        default: "Unknown",
-    })
-    country?: string;
-
     @Column({ unique: true })
     email?: string;
 
@@ -21,9 +14,6 @@ export class AdminEntity {
 
     @Column({ nullable: true })
     filename?: string;
-
-    @Column({ nullable: true })
-    nid?: string;
 
     @Column({ nullable: true })
     adminId?: string;
