@@ -20,8 +20,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
                 ignoreTLS: true,
                 secure: true,
                 auth: {
-                    user: 'your gmail account',
-                    pass: 'generated password',
+                    user: 'eshan.zaman570@gmail.com',
+                    pass: 'regz wnfi qyek wcpr',
                 },
             },
         }),
