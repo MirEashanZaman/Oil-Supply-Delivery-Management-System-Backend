@@ -1,11 +1,15 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import { Injectable, NotFoundException, BadRequestException, HttpException, HttpStatus } from "@nestjs/common";
 import { CustomerDTO } from "./customer.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CustomerEntity } from './customer.entity';
-import { Like, Repository } from "typeorm";
+import { Like, Repository, DeepPartial } from "typeorm";
 import { OrderEntity } from '../order/order.entity';
 import { Product } from '../product/product.entity';
+import { OrderDetailsEntity } from '../order/order-details.entity';
+import { PaymentEntity } from '../payment/payment.entity';
+import { DeliveryEntity } from '../delivery/delivery.entity';
 import { MailerService } from '@nestjs-modules/mailer';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class CustomerService {
@@ -13,6 +17,9 @@ export class CustomerService {
         @InjectRepository(CustomerEntity) private customerRepository: Repository<CustomerEntity>,
         @InjectRepository(OrderEntity) private orderRepository: Repository<OrderEntity>,
         @InjectRepository(Product) private productRepository: Repository<Product>,
+        @InjectRepository(OrderDetailsEntity) private orderDetailsRepository: Repository<OrderDetailsEntity>,
+        @InjectRepository(PaymentEntity) private paymentRepository: Repository<PaymentEntity>,
+        @InjectRepository(DeliveryEntity) private deliveryRepository: Repository<DeliveryEntity>,
         private mailerService: MailerService,
     ) { }
 
@@ -40,8 +47,21 @@ export class CustomerService {
         return { name: name, id: id }
     }
 
-    createCustomer(customerData: CustomerDTO): Promise<CustomerEntity> {
-        const customer = this.customerRepository.create(customerData);
+    async createCustomer(customerData: CustomerDTO): Promise<CustomerEntity> {
+        const existing = await this.customerRepository.findOneBy({ email: customerData.email as string });
+        if (existing) {
+            throw new HttpException('Customer already exists', HttpStatus.CONFLICT);
+        }
+
+        const isHashed = customerData.password && /^\$2[aby]\$\d{2}\$/.test(customerData.password);
+        const hashedPassword = customerData.password
+            ? (isHashed ? customerData.password : await bcrypt.hash(customerData.password, 10))
+            : undefined;
+
+        const customer = this.customerRepository.create({
+            ...customerData,
+            password: hashedPassword,
+        });
         return this.customerRepository.save(customer);
     }
 
@@ -56,8 +76,9 @@ export class CustomerService {
             throw new NotFoundException('Customer not found');
         }
 
+        let product: Product | null = null;
         if (order.product && order.product.id) {
-            const product = await this.productRepository.findOneBy({ id: order.product.id });
+            product = await this.productRepository.findOneBy({ id: order.product.id });
             if (!product || !product.quantity || product.quantity <= 0) {
                 throw new BadRequestException('Low stock');
             }
@@ -69,8 +90,35 @@ export class CustomerService {
             await this.productRepository.save(product);
         }
 
-        (order as any).customer = customer;
-        return this.orderRepository.save(order);
+        const newOrder = this.orderRepository.create({
+            ...order,
+            customer: customer
+        } as DeepPartial<OrderEntity>);
+        const savedOrder = await this.orderRepository.save(newOrder);
+
+        const payment = this.paymentRepository.create(
+            ((order as any).payment as DeepPartial<PaymentEntity>) || { status: 'pending' }
+        );
+        const savedPayment = await this.paymentRepository.save(payment);
+
+        const orderDetails = this.orderDetailsRepository.create({
+            quantity: order.quantity || 1,
+            unitPrice: product ? product.price : 0,
+            order: savedOrder,
+            product: product || undefined,
+            payment: savedPayment,
+            discount: 0
+        } as DeepPartial<OrderDetailsEntity>);
+        const savedOrderDetails = await this.orderDetailsRepository.save(orderDetails);
+
+        const delivery = this.deliveryRepository.create({
+            address: customer.address || 'Default Address',
+            deliveryStatus: 'pending',
+            orderDetails: savedOrderDetails
+        } as DeepPartial<DeliveryEntity>);
+        await this.deliveryRepository.save(delivery);
+
+        return savedOrder;
     }
     async getOrdersByCustomerId(customerId: string): Promise<OrderEntity[]> {
         return this.orderRepository.find({ where: { customer: { id: Number(customerId) } } });
@@ -88,9 +136,9 @@ export class CustomerService {
         return { message: 'Order deleted' };
     }
 
-    async findByFullNameSubstring(fullName: string): Promise<CustomerEntity[]> {
+    async findByUserNameSubstring(userName: string): Promise<CustomerEntity[]> {
         return this.customerRepository.find({
-            where: { fullName: Like(`%${fullName}%`) },
+            where: { username: Like(`%${userName}%`) },
         });
     }
 
