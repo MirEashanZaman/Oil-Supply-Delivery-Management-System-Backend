@@ -35,7 +35,7 @@ export class CustomerController {
 
     @Post('createcustomer')
     @UsePipes(new ValidationPipe())
-    @UseInterceptors(FileInterceptor('nidImage', {
+    @UseInterceptors(FileInterceptor('Image', {
         fileFilter: (req, nidImage, cb) => {
             if (nidImage.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/))
                 cb(null, true);
@@ -54,8 +54,10 @@ export class CustomerController {
 
     createCustomer(@UploadedFile() file: Express.Multer.File, @Body() customerData: CustomerDTO): Promise<CustomerEntity> {
         console.log(file?.filename);
-        const payload: any = { ...customerData, username: customerData.userName, filename: file?.filename };
-        return this.customerService.createCustomer(payload as any);
+        const customer = customerData as CustomerDTO & { username?: string; filename?: string };
+        customer.username = customer.userName;
+        customer.filename = file?.filename;
+        return this.customerService.createCustomer(customer);
     }
 
     @Post(':id/orders')
@@ -85,8 +87,8 @@ export class CustomerController {
     }
 
     @Get('search')
-    findByFullName(@Query('fullName') fullName: string) {
-        return this.customerService.findByFullNameSubstring(fullName);
+    findByUserName(@Query('userName') userName: string) {
+        return this.customerService.findByUserNameSubstring(userName);
     }
 
     @Get(':username')
