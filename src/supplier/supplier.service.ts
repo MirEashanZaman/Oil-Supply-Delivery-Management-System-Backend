@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import { Injectable, NotFoundException, HttpException, HttpStatus } from "@nestjs/common";
 import { SupplierDTO } from "./supplier.dto";
 import { SupplierEntity } from "./supplier.entity";
 import { Repository } from 'typeorm';
@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateResult } from "typeorm";
 import { MailerService } from '@nestjs-modules/mailer';
 import { Product } from '../product/product.entity';
+import * as bcrypt from 'bcrypt';
 
 
 @Injectable()
@@ -31,16 +32,28 @@ export class SupplierService {
         return this.SupplierRepository.find();
     }
 
-    getSupplierByID(id: number, fullname: string): object {
-        return { fullname: fullname, id: id }
+    getSupplierByID(id: number, userName: string): object {
+        return { userName: userName, id: id }
     }
 
-    getSupplierByIDandName(id: number, fullname: string): object {
-        return this.SupplierRepository.findOneBy({ id: id, fullname: fullname });
+    getSupplierByIDandName(id: number, userName: string): object {
+        return this.SupplierRepository.findOneBy({ id: id, userName: userName });
     }
 
-    createSupplier(supplierData: SupplierDTO): Promise<SupplierEntity> {
-        return this.SupplierRepository.save(supplierData);
+    async createSupplier(supplierData: SupplierDTO): Promise<SupplierEntity> {
+        const existing = await this.SupplierRepository.findOneBy({ email: supplierData.email as string });
+        if (existing) {
+            throw new HttpException('Supplier already exists', HttpStatus.CONFLICT);
+        }
+
+        const isHashed = supplierData.password && /^\$2[aby]\$\d{2}\$/.test(supplierData.password);
+        const hashedPassword = supplierData.password
+            ? (isHashed ? supplierData.password : await bcrypt.hash(supplierData.password, 10))
+            : undefined;
+        return this.SupplierRepository.save({
+            ...supplierData,
+            password: hashedPassword,
+        });
     }
 
 
@@ -55,10 +68,6 @@ export class SupplierService {
                 status: 'inactive'
             }
         });
-    }
-
-    getSupplierOld40(): Promise<SupplierEntity[]> {
-        return this.SupplierRepository.createQueryBuilder("supplier").where("supplier.age>:age", { age: 40 }).getMany();
     }
 
     async findByEmail(email: string): Promise<SupplierEntity | null> {
