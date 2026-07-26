@@ -13,7 +13,6 @@ export class CustomerDTO {
 
     filename?: string;
 
-
     @IsNotEmpty({ message: "Phone number is required" })
     @IsString()
     phoneNumber?: string;
