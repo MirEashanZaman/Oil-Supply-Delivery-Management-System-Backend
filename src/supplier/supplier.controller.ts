@@ -19,23 +19,18 @@ export class SupplierController {
     }
 
     @Get('getsupplierbyid/:myid/geybyname/:name')
-    getSupplierByID(@Param('myid') id: number, @Param('fullname') fullname: string): object {
-        return this.supplierService.getSupplierByID(id, fullname);
+    getSupplierByID(@Param('myid') id: number, @Param('userName') userName: string): object {
+        return this.supplierService.getSupplierByID(id, userName);
     }
 
     @Get('getsupplierbyidandname')
-    getSupplierByIDandName(@Query('id') id: number, @Query('fullname') fullname: string): object {
-        return this.supplierService.getSupplierByIDandName(id, fullname);
+    getSupplierByIDandName(@Query('id') id: number, @Query('userName') userName: string): object {
+        return this.supplierService.getSupplierByIDandName(id, userName);
     }
 
     @Post('createsupplier')
     @UsePipes(new ValidationPipe())
-
-    createSupplier(
-
-        @Body() supplierData: SupplierDTO,): Promise<SupplierEntity> {
-
-        console.log("Received Body:", supplierData);
+    createSupplier(@Body() supplierData: SupplierDTO): Promise<SupplierEntity> {
         return this.supplierService.createSupplier(supplierData);
     }
 
@@ -68,12 +63,6 @@ export class SupplierController {
     getInactiveUsers(): Promise<SupplierEntity[]> {
 
         return this.supplierService.getInactiveSupplier();
-    }
-
-    @Get('olderthan40')
-    getSupplierOld40(): Promise<SupplierEntity[]> {
-
-        return this.supplierService.getSupplierOld40();
     }
 
     @Put('confirmorder/:id')
