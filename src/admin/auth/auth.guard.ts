@@ -19,7 +19,10 @@ export class AuthGuard implements CanActivate {
                 { secret: jwtConstants.secret }
             );
             request['user'] = payload;
-        } catch { throw new UnauthorizedException(); }
+        } catch (err) {
+            console.log("JWT Verification Error:", err);
+            throw new UnauthorizedException();
+        }
         return true;
     }
     private extractTokenFromCookie(request: Request): string | undefined {
