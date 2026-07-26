@@ -15,7 +15,7 @@ import { AdminEntity } from './admin.entity';
                 ignoreTLS: true,
                 secure: true,
                 auth: {
-                    user: 'eshan.caman570@gmail.com',
+                    user: 'eshan.zaman570@gmail.com',
                     pass: 'regz wnfi qyek wcpr',
                 },
             },
