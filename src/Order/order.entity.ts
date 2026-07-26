@@ -1,12 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, BeforeInsert } from 'typeorm';
 import { CustomerEntity } from "../customer/customer.entity";
 import { Product } from "../product/product.entity";
+import { randomUUID } from 'crypto';
 
 @Entity()
 export class OrderEntity {
     @PrimaryGeneratedColumn()
     id?: number;
-    @Column()
+    @Column({ nullable: true })
     orderNumber?: string;
     @Column({ type: 'int', default: 1 })
     quantity?: number;
@@ -14,4 +15,9 @@ export class OrderEntity {
     customer?: CustomerEntity;
     @ManyToOne(() => Product)
     product?: Product;
+
+    @BeforeInsert()
+    generateOrderNumber(): void {
+        this.orderNumber = randomUUID();
+    }
 }
