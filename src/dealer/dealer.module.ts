@@ -4,10 +4,11 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { Dealer } from './dealer.entity';
 import { DealerService } from './dealer.service';
 import { DealerController } from './dealer.controller';
+import { Product } from '../product/product.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Dealer]),
+    TypeOrmModule.forFeature([Dealer, Product]),
     MailerModule.forRoot({
       transport: {
         host: 'smtp.gmail.com',
