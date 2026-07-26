@@ -12,14 +12,10 @@ export class CustomerEntity {
 
     @Column({ length: 100, unique: true })
     username?: string;
-    @Column({ select: false })
-    fullName?: string;
     @Column()
     email?: string;
     @Column()
     password?: string;
-    @Column()
-    nid?: string;
     @Column()
     filename?: string;
 
