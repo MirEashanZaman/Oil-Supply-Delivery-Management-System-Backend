@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UsePipes, UseInterceptors, UploadedFile, ValidationPipe, Res } from '@nestjs/common';
+import { Body, Controller, Post, UsePipes, UseInterceptors, UploadedFile, ValidationPipe, Res, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { DealerDTO, loginDTO } from '../dealer.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -30,16 +30,21 @@ export class AuthController {
         }
     ))
     @UsePipes(new ValidationPipe)
-    async addUser(@Body() myobj: DealerDTO, @UploadedFile() myfile: Express.Multer.File): Promise<any> {
+    async addUser(@Body() myobj: DealerDTO, @UploadedFile() file: Express.Multer.File): Promise<any> {
+        if (!file?.filename) {
+            throw new BadRequestException('Photo is required during registration');
+        }
         if (!myobj.password) {
             myobj.password = "";
         }
         const salt = await bcrypt.genSalt();
         const hashedpassword = await bcrypt.hash(myobj.password, salt);
-        myobj.password = hashedpassword;
-        myobj.filename = myfile.filename;
-        myobj.title = 'Dealer';
-        return this.authService.signUp(myobj);
+        const dealer = myobj as DealerDTO & { username?: string; filename?: string };
+        dealer.username = dealer.userName;
+        dealer.filename = file?.filename;
+        dealer.password = hashedpassword;
+        dealer.title = 'Dealer';
+        return this.authService.signUp(dealer);
     }
 
     @Post('signIn')
@@ -51,7 +56,7 @@ export class AuthController {
 
         res.cookie("access_token", result.access_token, {
             httpOnly: true,
-            sameSite: "none",
+            sameSite: "lax",
             secure: false,
             path: "/",
             maxAge: 300 * 60 * 1000,
