@@ -16,7 +16,7 @@ import { Product } from '../product/product.entity';
                 ignoreTLS: true,
                 secure: true,
                 auth: {
-                    user: 'eshan.caman570@gmail.com',
+                    user: 'eshan.zaman570@gmail.com',
                     pass: 'regz wnfi qyek wcpr',
                 },
             },
