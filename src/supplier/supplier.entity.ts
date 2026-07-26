@@ -6,10 +6,6 @@ import { Product } from '../product/product.entity';
 export class SupplierEntity {
     @PrimaryGeneratedColumn({ unsigned: true })
     id?: number;
-    @Column({ type: "varchar", length: 100 })
-    fullname?: string;
-    @Column({ type: "int", unsigned: true })
-    age?: number;
     @Column({ type: 'enum', enum: ['active', 'inactive'], default: 'active' })
     status?: string;
 
@@ -21,9 +17,6 @@ export class SupplierEntity {
 
     @Column({ nullable: true })
     filename?: string;
-
-    @Column({ nullable: true })
-    nid?: string;
 
     @Column({ nullable: true })
     supplierId?: string;
