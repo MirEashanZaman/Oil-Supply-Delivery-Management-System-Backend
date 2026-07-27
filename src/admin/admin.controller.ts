@@ -1,8 +1,12 @@
-import { Body, Controller, Get, Param, Post, Put, Patch, Delete, Query, UsePipes, ValidationPipe, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Put, Patch, Delete, Query, UsePipes, ValidationPipe, UseGuards, Req } from "@nestjs/common";
 import { AuthGuard } from './auth/auth.guard';
 import { AdminService } from "./admin.service";
 import { AdminDTO } from "./admin.dto";
 import { AdminEntity } from "./admin.entity";
+import { CustomerDTO } from "../customer/customer.dto";
+import { DealerDTO } from "../dealer/dealer.dto";
+import { SupplierDTO } from "../supplier/supplier.dto";
+import { Request } from "express";
 
 @UseGuards(AuthGuard)
 @Controller('admin')
@@ -42,13 +46,64 @@ export class AdminController {
     }
 
     @Patch(':id')
-    patchAdmin(@Param('id') id: string, @Body() data: Partial<AdminDTO>) {
-        return this.adminService.patchAdmin(Number(id), data);
+    patchAdmin(@Param('id') id: string, @Body() data: Partial<AdminDTO>, @Req() req: Request) {
+        return this.adminService.patchAdmin(Number(id), req['user'].email, data);
     }
 
     @Delete(':id')
-    deleteAdmin(@Param('id') id: string) {
-        return this.adminService.deleteAdmin(Number(id));
+    deleteAdmin(@Param('id') id: string, @Req() req: Request) {
+        return this.adminService.deleteAdmin(Number(id), req['user'].email);
+    }
+
+    // Manage Customers
+    @Post('customer')
+    @UsePipes(new ValidationPipe())
+    createCustomer(@Body() data: CustomerDTO) {
+        return this.adminService.adminCreateCustomer(data);
+    }
+
+    @Patch('customer/:id')
+    updateCustomer(@Param('id') id: string, @Body() data: Partial<CustomerDTO>) {
+        return this.adminService.adminUpdateCustomer(Number(id), data);
+    }
+
+    @Delete('customer/:id')
+    deleteCustomer(@Param('id') id: string) {
+        return this.adminService.adminDeleteCustomer(Number(id));
+    }
+
+    // Manage Dealers
+    @Post('dealer')
+    @UsePipes(new ValidationPipe())
+    createDealer(@Body() data: DealerDTO) {
+        return this.adminService.adminCreateDealer(data);
+    }
+
+    @Patch('dealer/:id')
+    updateDealer(@Param('id') id: string, @Body() data: Partial<DealerDTO>) {
+        return this.adminService.adminUpdateDealer(Number(id), data);
+    }
+
+    @Delete('dealer/:id')
+    deleteDealer(@Param('id') id: string) {
+        return this.adminService.adminDeleteDealer(Number(id));
+    }
+
+    // Manage Suppliers
+    @Post('supplier')
+    @UsePipes(new ValidationPipe())
+    createSupplier(@Body() data: SupplierDTO) {
+        return this.adminService.adminCreateSupplier(data);
+    }
+
+    @Patch('supplier/:id')
+    updateSupplier(@Param('id') id: string, @Body() data: Partial<SupplierDTO>) {
+        return this.adminService.adminUpdateSupplier(Number(id), data);
+    }
+
+    @Delete('supplier/:id')
+    deleteSupplier(@Param('id') id: string) {
+        return this.adminService.adminDeleteSupplier(Number(id));
     }
 
     @Post('send-email')
