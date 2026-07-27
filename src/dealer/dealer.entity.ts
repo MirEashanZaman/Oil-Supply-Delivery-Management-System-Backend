@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert, ManyToMany, JoinTable } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert, ManyToMany, JoinTable, CreateDateColumn } from 'typeorm';
 import { randomUUID } from 'crypto';
 import { Product } from '../product/product.entity';
 
@@ -33,6 +33,9 @@ export class Dealer {
 
     @Column({ nullable: true })
     title?: string;
+
+    @CreateDateColumn({ type: 'timestamp', nullable: true })
+    joiningDate?: Date;
 
     @ManyToMany(() => Product, product => product.dealers)
     @JoinTable({ name: 'dealer_products' })
