@@ -43,8 +43,12 @@ export class AdminService {
     }
 
 
-    getAllAdmin(): Promise<AdminEntity[]> {
-        return this.adminRepo.find();
+    async getAllUsers(): Promise<any[]> {
+        const admins = await this.adminRepo.find();
+        const customers = await this.customerRepo.find();
+        const dealers = await this.dealerRepo.find();
+        const suppliers = await this.supplierRepo.find();
+        return [...admins, ...customers, ...dealers, ...suppliers];
     }
 
 
