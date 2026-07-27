@@ -71,11 +71,28 @@ export class AdminService {
     }
 
 
-    async getByJoiningDate(date: string): Promise<AdminEntity[]> {
-        return await this.adminRepo
+    async getByJoiningDate(date: string): Promise<any[]> {
+        const admins = await this.adminRepo
             .createQueryBuilder("admin")
             .where("CAST(admin.joiningDate AS DATE) = :date", { date })
             .getMany();
+
+        const customers = await this.customerRepo
+            .createQueryBuilder("customer")
+            .where("CAST(customer.joiningDate AS DATE) = :date", { date })
+            .getMany();
+
+        const dealers = await this.dealerRepo
+            .createQueryBuilder("dealer")
+            .where("CAST(dealer.joiningDate AS DATE) = :date", { date })
+            .getMany();
+
+        const suppliers = await this.supplierRepo
+            .createQueryBuilder("supplier")
+            .where("CAST(supplier.joiningDate AS DATE) = :date", { date })
+            .getMany();
+
+        return [...admins, ...customers, ...dealers, ...suppliers];
     }
 
     async findByEmail(email: string): Promise<AdminEntity | null> {
