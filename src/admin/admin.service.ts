@@ -74,7 +74,7 @@ export class AdminService {
     async getByJoiningDate(date: string): Promise<AdminEntity[]> {
         return await this.adminRepo
             .createQueryBuilder("admin")
-            .where("DATE(admin.joiningDate) = :date", { date })
+            .where("CAST(admin.joiningDate AS DATE) = :date", { date })
             .getMany();
     }
 
