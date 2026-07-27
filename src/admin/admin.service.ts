@@ -125,11 +125,9 @@ export class AdminService {
         }
         const hashedPassword = data.password ? await bcrypt.hash(data.password, 10) : undefined;
         const customer = this.customerRepo.create({
+            ...data,
             username: data.userName,
-            email: data.email,
             password: hashedPassword,
-            phoneNumber: data.phoneNumber,
-            address: data.address,
             title: 'Customer'
         });
         return this.customerRepo.save(customer);
@@ -143,11 +141,10 @@ export class AdminService {
         if (data.password) {
             data.password = await bcrypt.hash(data.password, 10);
         }
-        const updateData: any = { ...data };
-        if (data.userName) {
-            updateData.username = data.userName;
-        }
-        await this.customerRepo.update(id, updateData);
+        await this.customerRepo.update(id, {
+            ...data,
+            username: data.userName
+        });
         return this.customerRepo.findOneBy({ id });
     }
 
@@ -163,11 +160,8 @@ export class AdminService {
         }
         const hashedPassword = data.password ? await bcrypt.hash(data.password, 10) : undefined;
         const dealer = this.dealerRepo.create({
-            userName: data.userName,
-            email: data.email,
+            ...data,
             password: hashedPassword,
-            phoneNumber: data.phoneNumber,
-            address: data.address,
             title: 'Dealer',
             phone: data.phoneNumber ? Number(data.phoneNumber) : undefined
         });
@@ -182,11 +176,10 @@ export class AdminService {
         if (data.password) {
             data.password = await bcrypt.hash(data.password, 10);
         }
-        const updateData: any = { ...data };
-        if (data.phoneNumber) {
-            updateData.phone = Number(data.phoneNumber);
-        }
-        await this.dealerRepo.update(id, updateData);
+        await this.dealerRepo.update(id, {
+            ...data,
+            phone: data.phoneNumber ? Number(data.phoneNumber) : undefined
+        });
         return this.dealerRepo.findOneBy({ id });
     }
 
@@ -202,11 +195,8 @@ export class AdminService {
         }
         const hashedPassword = data.password ? await bcrypt.hash(data.password, 10) : undefined;
         const supplier = this.supplierRepo.create({
-            userName: data.userName,
-            email: data.email,
+            ...data,
             password: hashedPassword,
-            phoneNumber: data.phoneNumber,
-            address: data.address,
             title: 'Supplier'
         });
         return this.supplierRepo.save(supplier);
