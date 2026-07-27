@@ -19,9 +19,9 @@ export class AdminController {
         return this.adminService.getAdmin();
     }
 
-    @Get('getalladmin')
-    getAllAdmin(): Promise<AdminEntity[]> {
-        return this.adminService.getAllAdmin();
+    @Get('getallusers')
+    getAllUsers(): Promise<any[]> {
+        return this.adminService.getAllUsers();
     }
 
     @Get('getadminbyid/:myid')
@@ -37,7 +37,7 @@ export class AdminController {
 
 
     @Get('joiningdate')
-    getByJoiningDate(@Query('date') date: string): Promise<AdminEntity[]> {
+    getByJoiningDate(@Query('date') date: string): Promise<any[]> {
         return this.adminService.getByJoiningDate(date);
     }
 
