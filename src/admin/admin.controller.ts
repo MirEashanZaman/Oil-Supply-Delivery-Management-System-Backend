@@ -37,7 +37,7 @@ export class AdminController {
 
 
     @Get('joiningdate')
-    getByJoiningDate(@Query('date') date: string): Promise<AdminEntity[]> {
+    getByJoiningDate(@Query('date') date: string): Promise<any[]> {
         return this.adminService.getByJoiningDate(date);
     }
 
