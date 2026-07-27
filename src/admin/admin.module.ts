@@ -5,9 +5,13 @@ import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { AdminEntity } from './admin.entity';
 
+import { CustomerEntity } from '../customer/customer.entity';
+import { Dealer } from '../dealer/dealer.entity';
+import { SupplierEntity } from '../supplier/supplier.entity';
+
 @Module({
     imports: [
-        TypeOrmModule.forFeature([AdminEntity]),
+        TypeOrmModule.forFeature([AdminEntity, CustomerEntity, Dealer, SupplierEntity]),
         MailerModule.forRoot({
             transport: {
                 host: 'smtp.gmail.com',
