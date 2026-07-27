@@ -19,9 +19,9 @@ export class AdminController {
         return this.adminService.getAdmin();
     }
 
-    @Get('getalladmin')
-    getAllAdmin(): Promise<AdminEntity[]> {
-        return this.adminService.getAllAdmin();
+    @Get('getallusers')
+    getAllUsers(): Promise<any[]> {
+        return this.adminService.getAllUsers();
     }
 
     @Get('getadminbyid/:myid')
