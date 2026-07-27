@@ -6,6 +6,7 @@ import { AdminDTO } from "./admin.dto";
 import { CustomerEntity } from "../customer/customer.entity";
 import { Dealer } from "../dealer/dealer.entity";
 import { SupplierEntity } from "../supplier/supplier.entity";
+import { OrderEntity } from "../order/order.entity";
 import { CustomerDTO } from "../customer/customer.dto";
 import { DealerDTO } from "../dealer/dealer.dto";
 import { SupplierDTO } from "../supplier/supplier.dto";
@@ -24,6 +25,8 @@ export class AdminService {
         private dealerRepo: Repository<Dealer>,
         @InjectRepository(SupplierEntity)
         private supplierRepo: Repository<SupplierEntity>,
+        @InjectRepository(OrderEntity)
+        private orderRepo: Repository<OrderEntity>,
         private mailerService: MailerService,
     ) { }
 
@@ -216,5 +219,19 @@ export class AdminService {
 
     async adminDeleteSupplier(id: number): Promise<void> {
         await this.supplierRepo.delete(id);
+    }
+
+    // Order CRUD (Update and Delete only, no creation)
+    async adminUpdateOrder(id: number, data: Partial<OrderEntity>): Promise<OrderEntity | null> {
+        const order = await this.orderRepo.findOneBy({ id });
+        if (!order) {
+            throw new NotFoundException('Order not found');
+        }
+        await this.orderRepo.update(id, data);
+        return this.orderRepo.findOneBy({ id });
+    }
+
+    async adminDeleteOrder(id: number): Promise<void> {
+        await this.orderRepo.delete(id);
     }
 }
