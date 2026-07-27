@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, BeforeInsert } from "typeorm"
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, BeforeInsert, CreateDateColumn } from "typeorm"
 import { randomUUID } from "crypto";
 import { OrderEntity } from "../order/order.entity";
 
@@ -27,6 +27,9 @@ export class CustomerEntity {
 
     @Column({ nullable: true })
     title?: string;
+
+    @CreateDateColumn({ type: 'timestamp', nullable: true })
+    joiningDate?: Date;
 
     @BeforeInsert()
     generateCustomerId(): void {
