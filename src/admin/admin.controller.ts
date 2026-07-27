@@ -6,6 +6,7 @@ import { AdminEntity } from "./admin.entity";
 import { CustomerDTO } from "../customer/customer.dto";
 import { DealerDTO } from "../dealer/dealer.dto";
 import { SupplierDTO } from "../supplier/supplier.dto";
+import { OrderEntity } from "../order/order.entity";
 import { Request } from "express";
 
 @UseGuards(AuthGuard)
@@ -104,6 +105,17 @@ export class AdminController {
     @Delete('supplier/:id')
     deleteSupplier(@Param('id') id: string) {
         return this.adminService.adminDeleteSupplier(Number(id));
+    }
+
+    // Manage Orders (Update & Delete only)
+    @Patch('order/:id')
+    updateOrder(@Param('id') id: string, @Body() data: Partial<OrderEntity>) {
+        return this.adminService.adminUpdateOrder(Number(id), data);
+    }
+
+    @Delete('order/:id')
+    deleteOrder(@Param('id') id: string) {
+        return this.adminService.adminDeleteOrder(Number(id));
     }
 
     @Post('send-email')
