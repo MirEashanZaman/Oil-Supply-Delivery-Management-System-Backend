@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, CreateDateColumn } from "typeorm";
 import { randomUUID } from "crypto";
 
 @Entity("admin")
@@ -29,6 +29,9 @@ export class AdminEntity {
 
     @Column({ nullable: true })
     title?: string;
+
+    @CreateDateColumn({ type: 'timestamp', nullable: true })
+    joiningDate?: Date;
 
     @BeforeInsert()
     generateAdminId() {
