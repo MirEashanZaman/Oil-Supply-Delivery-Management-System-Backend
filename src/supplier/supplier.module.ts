@@ -6,9 +6,12 @@ import { SupplierService } from './supplier.service';
 import { SupplierEntity } from "./supplier.entity";
 import { Product } from '../product/product.entity';
 
+import { OrderEntity } from '../order/order.entity';
+import { DeliveryEntity } from '../delivery/delivery.entity';
+
 @Module({
     imports: [
-        TypeOrmModule.forFeature([SupplierEntity, Product]),
+        TypeOrmModule.forFeature([SupplierEntity, Product, OrderEntity, DeliveryEntity]),
         MailerModule.forRoot({
             transport: {
                 host: 'smtp.gmail.com',
