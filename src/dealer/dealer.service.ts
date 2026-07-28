@@ -5,6 +5,8 @@ import { Dealer } from './dealer.entity';
 import { DealerDTO } from './dealer.dto';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Product } from '../product/product.entity';
+import { OrderEntity } from '../order/order.entity';
+import { SupplierEntity } from '../supplier/supplier.entity';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -14,6 +16,10 @@ export class DealerService {
     private dealerRepository: Repository<Dealer>,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    @InjectRepository(OrderEntity)
+    private orderRepository: Repository<OrderEntity>,
+    @InjectRepository(SupplierEntity)
+    private supplierRepository: Repository<SupplierEntity>,
     private mailerService: MailerService,
   ) { }
 
@@ -67,8 +73,29 @@ export class DealerService {
     return this.dealerRepository.find();
   }
 
-  placeOrder(orderData: any) {
-    return { order: orderData, status: 'placed', message: 'Order placed by dealer' };
+  async placeOrder(orderData: any, dealerEmail: string): Promise<any> {
+    const dealer = await this.findByEmail(dealerEmail);
+    if (!dealer) throw new NotFoundException('Dealer not found');
+
+    let product: Product | null = null;
+    if (orderData.productId) {
+      product = await this.productRepository.findOneBy({ id: orderData.productId });
+      if (!product) throw new NotFoundException('Product not found');
+    }
+
+    let supplier: SupplierEntity | null = null;
+    if (orderData.supplierId) {
+      supplier = await this.supplierRepository.findOneBy({ id: orderData.supplierId });
+      if (!supplier) throw new NotFoundException('Supplier not found');
+    }
+
+    const order = this.orderRepository.create({
+      quantity: orderData.quantity || 1,
+      product: product || undefined,
+      dealer: dealer,
+      supplier: supplier || undefined
+    });
+    return await this.orderRepository.save(order);
   }
 
   trackOrderStatus(orderId: number) {
