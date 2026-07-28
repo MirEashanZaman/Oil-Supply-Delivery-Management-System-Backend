@@ -24,6 +24,9 @@ export class OrderEntity {
     @ManyToOne(() => SupplierEntity, { nullable: true })
     supplier?: SupplierEntity;
 
+    @Column({ default: 'pending' })
+    status?: string;
+
     @BeforeInsert()
     generateOrderNumber(): void {
         this.orderNumber = randomUUID();
