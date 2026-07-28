@@ -16,7 +16,7 @@ export class CustomerEntity {
     email?: string;
     @Column()
     password?: string;
-    @Column()
+    @Column({ nullable: true })
     filename?: string;
 
     @Column({ nullable: true })
