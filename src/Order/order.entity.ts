@@ -1,6 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, BeforeInsert } from 'typeorm';
 import { CustomerEntity } from "../customer/customer.entity";
 import { Product } from "../product/product.entity";
+import { Dealer } from "../dealer/dealer.entity";
+import { SupplierEntity } from "../supplier/supplier.entity";
 import { randomUUID } from 'crypto';
 
 @Entity()
@@ -15,6 +17,12 @@ export class OrderEntity {
     customer?: CustomerEntity;
     @ManyToOne(() => Product)
     product?: Product;
+
+    @ManyToOne(() => Dealer, { nullable: true })
+    dealer?: Dealer;
+
+    @ManyToOne(() => SupplierEntity, { nullable: true })
+    supplier?: SupplierEntity;
 
     @BeforeInsert()
     generateOrderNumber(): void {
