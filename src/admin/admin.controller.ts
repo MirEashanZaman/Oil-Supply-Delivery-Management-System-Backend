@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Patch, Delete, Query, UsePipes, ValidationPipe, UseGuards, Req } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Patch, Delete, Query, UsePipes, ValidationPipe, UseGuards, Req } from "@nestjs/common";
 import { AuthGuard } from './auth/auth.guard';
 import { AdminService } from "./admin.service";
 import { AdminDTO } from "./admin.dto";
@@ -48,12 +48,12 @@ export class AdminController {
 
     @Patch(':id')
     patchAdmin(@Param('id') id: string, @Body() data: Partial<AdminDTO>, @Req() req: Request) {
-        return this.adminService.patchAdmin(Number(id), req['user'].email, data);
+        return this.adminService.patchAdmin(Number(id), (req as any).user.email, data);
     }
 
     @Delete(':id')
     deleteAdmin(@Param('id') id: string, @Req() req: Request) {
-        return this.adminService.deleteAdmin(Number(id), req['user'].email);
+        return this.adminService.deleteAdmin(Number(id), (req as any).user.email);
     }
 
     // Manage Customers
