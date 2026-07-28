@@ -7,7 +7,7 @@ export class Dealer {
     @PrimaryGeneratedColumn()
     id?: number;
 
-    @Column({ type: 'bigint', unsigned: true })
+    @Column({ type: 'bigint', unsigned: true, nullable: true })
     phone?: number;
 
     @Column({ unique: true })
