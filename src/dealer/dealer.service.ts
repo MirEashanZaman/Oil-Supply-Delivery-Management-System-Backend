@@ -38,14 +38,13 @@ export class DealerService {
     const newDealer: Dealer = this.dealerRepository.create({
       ...dealerData,
       password: hashedPassword,
-      phone: dealerData.phoneNumber ? Number(dealerData.phoneNumber) : undefined,
     });
     return this.dealerRepository.save(newDealer);
   }
 
   async updatePhone(id: number, dealerData: DealerDTO): Promise<Dealer | null> {
     await this.dealerRepository.update(id, {
-      phone: dealerData.phoneNumber ? Number(dealerData.phoneNumber) : undefined,
+      phoneNumber: dealerData.phoneNumber,
     });
     return this.dealerRepository.findOneBy({ id });
   }
