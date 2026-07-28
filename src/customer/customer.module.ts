@@ -8,11 +8,13 @@ import { OrderDetailsEntity } from '../order/order-details.entity';
 import { Product } from '../product/product.entity';
 import { PaymentEntity } from '../payment/payment.entity';
 import { DeliveryEntity } from '../delivery/delivery.entity';
+import { Dealer } from '../dealer/dealer.entity';
+import { SupplierEntity } from '../supplier/supplier.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([CustomerEntity, OrderEntity, OrderDetailsEntity, Product, PaymentEntity, DeliveryEntity]),
+        TypeOrmModule.forFeature([CustomerEntity, OrderEntity, OrderDetailsEntity, Product, PaymentEntity, DeliveryEntity, Dealer, SupplierEntity]),
         MailerModule.forRoot({
             transport: {
                 host: 'smtp.gmail.com',
