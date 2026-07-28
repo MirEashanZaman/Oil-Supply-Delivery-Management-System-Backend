@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Put, Patch, Param, Delete, UsePipes, ValidationPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Patch, Param, Delete, UsePipes, ValidationPipe, UseGuards, Req } from '@nestjs/common';
 import { AuthGuard } from './auth/auth.guard';
 import { DealerService } from './dealer.service';
 import { Dealer } from './dealer.entity';
 import { DealerDTO } from './dealer.dto';
+import { Request } from 'express';
 
 @Controller('dealer')
 @UseGuards(AuthGuard)
@@ -55,8 +56,8 @@ export class DealerController {
   }
 
   @Post('placeorder')
-  placeOrder(@Body() orderData: any) {
-    return this.dealerService.placeOrder(orderData);
+  placeOrder(@Body() orderData: any, @Req() req: Request) {
+    return this.dealerService.placeOrder(orderData, (req as any).user.email);
   }
 
   @Get('trackorder/:id')
