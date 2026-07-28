@@ -8,6 +8,8 @@ import { Product } from '../product/product.entity';
 import { OrderDetailsEntity } from '../order/order-details.entity';
 import { PaymentEntity } from '../payment/payment.entity';
 import { DeliveryEntity } from '../delivery/delivery.entity';
+import { Dealer } from '../dealer/dealer.entity';
+import { SupplierEntity } from '../supplier/supplier.entity';
 import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcrypt';
 
@@ -20,6 +22,8 @@ export class CustomerService {
         @InjectRepository(OrderDetailsEntity) private orderDetailsRepository: Repository<OrderDetailsEntity>,
         @InjectRepository(PaymentEntity) private paymentRepository: Repository<PaymentEntity>,
         @InjectRepository(DeliveryEntity) private deliveryRepository: Repository<DeliveryEntity>,
+        @InjectRepository(Dealer) private dealerRepository: Repository<Dealer>,
+        @InjectRepository(SupplierEntity) private supplierRepository: Repository<SupplierEntity>,
         private mailerService: MailerService,
     ) { }
 
@@ -90,9 +94,21 @@ export class CustomerService {
             await this.productRepository.save(product);
         }
 
+        let dealer: Dealer | null = null;
+        if (order.dealer && order.dealer.id) {
+            dealer = await this.dealerRepository.findOneBy({ id: order.dealer.id });
+        }
+
+        let supplier: SupplierEntity | null = null;
+        if (order.supplier && order.supplier.id) {
+            supplier = await this.supplierRepository.findOneBy({ id: order.supplier.id });
+        }
+
         const newOrder = this.orderRepository.create({
             ...order,
-            customer: customer
+            customer: customer,
+            dealer: dealer || undefined,
+            supplier: supplier || undefined
         } as DeepPartial<OrderEntity>);
         const savedOrder = await this.orderRepository.save(newOrder);
 
