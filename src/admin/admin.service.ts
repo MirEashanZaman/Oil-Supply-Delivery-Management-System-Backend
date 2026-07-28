@@ -165,10 +165,12 @@ export class AdminService {
         if (data.password) {
             data.password = await bcrypt.hash(data.password, 10);
         }
-        await this.customerRepo.update(id, {
-            ...data,
-            username: data.userName
-        });
+        const updateData: any = { ...data };
+        if (data.userName) {
+            updateData.username = data.userName;
+            delete updateData.userName;
+        }
+        await this.customerRepo.update(id, updateData);
         return this.customerRepo.findOneBy({ id });
     }
 
