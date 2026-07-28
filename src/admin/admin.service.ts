@@ -186,8 +186,7 @@ export class AdminService {
         const dealer = this.dealerRepo.create({
             ...data,
             password: hashedPassword,
-            title: 'Dealer',
-            phone: data.phoneNumber ? Number(data.phoneNumber) : undefined
+            title: 'Dealer'
         });
         return this.dealerRepo.save(dealer);
     }
@@ -201,8 +200,7 @@ export class AdminService {
             data.password = await bcrypt.hash(data.password, 10);
         }
         await this.dealerRepo.update(id, {
-            ...data,
-            phone: data.phoneNumber ? Number(data.phoneNumber) : undefined
+            ...data
         });
         return this.dealerRepo.findOneBy({ id });
     }
