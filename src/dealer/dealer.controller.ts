@@ -78,4 +78,14 @@ export class DealerController {
   ) {
     return this.dealerService.sendEmail(to, subject, text);
   }
+
+  @Put('confirmorder/:id')
+  confirmOrder(@Param('id') id: string, @Body('status') status?: string) {
+    return this.dealerService.confirmOrder(Number(id), status);
+  }
+
+  @Post('scheduledelivery')
+  scheduleDelivery(@Body('orderId') orderId: number, @Body('deliveryDate') deliveryDate: string) {
+    return this.dealerService.scheduleDelivery(orderId, deliveryDate);
+  }
 }
