@@ -7,6 +7,8 @@ import { UpdateResult } from "typeorm";
 import { MailerService } from '@nestjs-modules/mailer';
 import { Product } from '../product/product.entity';
 import * as bcrypt from 'bcrypt';
+import { OrderEntity } from '../order/order.entity';
+import { DeliveryEntity } from '../delivery/delivery.entity';
 
 
 @Injectable()
@@ -14,6 +16,8 @@ export class SupplierService {
     constructor(
         @InjectRepository(SupplierEntity) private SupplierRepository: Repository<SupplierEntity>,
         @InjectRepository(Product) private productRepository: Repository<Product>,
+        @InjectRepository(OrderEntity) private orderRepository: Repository<OrderEntity>,
+        @InjectRepository(DeliveryEntity) private deliveryRepository: Repository<DeliveryEntity>,
         private mailerService: MailerService,
     ) { }
 
@@ -74,12 +78,36 @@ export class SupplierService {
         return await this.SupplierRepository.findOneBy({ email });
     }
 
-    confirmOrder(orderId: number, status: string = 'confirmed') {
-        return { orderId: orderId, status: status, message: "Order confirmed by supplier" };
+    async confirmOrder(orderId: number, status: string = 'confirmed') {
+        const order = await this.orderRepository.findOne({ where: { id: orderId } });
+        if (!order) throw new NotFoundException('Order not found');
+        order.status = status;
+        await this.orderRepository.save(order);
+
+        const delivery = await this.deliveryRepository.findOne({
+            where: { orderDetails: { order: { id: orderId } } }
+        });
+        if (delivery) {
+            delivery.deliveryStatus = status === 'accepted' || status === 'confirmed' ? 'processing' : 'rejected';
+            await this.deliveryRepository.save(delivery);
+        }
+
+        return { order, delivery, message: `Order status updated to ${status} by supplier` };
     }
 
-    scheduleDelivery(orderId: number, deliveryDate: string) {
-        return { orderId: orderId, deliveryDate: deliveryDate, message: "Delivery scheduled" };
+    async scheduleDelivery(orderId: number, deliveryDate: string) {
+        const order = await this.orderRepository.findOne({ where: { id: orderId } });
+        if (!order) throw new NotFoundException('Order not found');
+
+        const delivery = await this.deliveryRepository.findOne({
+            where: { orderDetails: { order: { id: orderId } } }
+        });
+        if (delivery) {
+            delivery.deliveryStatus = `scheduled (Date: ${deliveryDate})`;
+            await this.deliveryRepository.save(delivery);
+        }
+
+        return { orderId, deliveryDate, delivery, message: "Delivery successfully scheduled by supplier" };
     }
 
     async deleteSupplier(id: number): Promise<void> {
