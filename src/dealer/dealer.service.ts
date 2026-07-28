@@ -7,6 +7,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { Product } from '../product/product.entity';
 import { OrderEntity } from '../order/order.entity';
 import { SupplierEntity } from '../supplier/supplier.entity';
+import { DeliveryEntity } from '../delivery/delivery.entity';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -20,6 +21,8 @@ export class DealerService {
     private orderRepository: Repository<OrderEntity>,
     @InjectRepository(SupplierEntity)
     private supplierRepository: Repository<SupplierEntity>,
+    @InjectRepository(DeliveryEntity)
+    private deliveryRepository: Repository<DeliveryEntity>,
     private mailerService: MailerService,
   ) { }
 
@@ -126,5 +129,37 @@ export class DealerService {
     if (!dealer) throw new NotFoundException('Dealer not found');
     dealer.products = (dealer.products || []).filter(p => p.id !== productId);
     await this.dealerRepository.save(dealer);
+  }
+
+  async confirmOrder(orderId: number, status: string = 'confirmed') {
+    const order = await this.orderRepository.findOne({ where: { id: orderId } });
+    if (!order) throw new NotFoundException('Order not found');
+    order.status = status;
+    await this.orderRepository.save(order);
+
+    const delivery = await this.deliveryRepository.findOne({
+      where: { orderDetails: { order: { id: orderId } } }
+    });
+    if (delivery) {
+      delivery.deliveryStatus = status === 'accepted' || status === 'confirmed' ? 'processing' : 'rejected';
+      await this.deliveryRepository.save(delivery);
+    }
+
+    return { order, delivery, message: `Order status updated to ${status} by dealer` };
+  }
+
+  async scheduleDelivery(orderId: number, deliveryDate: string) {
+    const order = await this.orderRepository.findOne({ where: { id: orderId } });
+    if (!order) throw new NotFoundException('Order not found');
+
+    const delivery = await this.deliveryRepository.findOne({
+      where: { orderDetails: { order: { id: orderId } } }
+    });
+    if (delivery) {
+      delivery.deliveryStatus = `scheduled (Date: ${deliveryDate})`;
+      await this.deliveryRepository.save(delivery);
+    }
+
+    return { orderId, deliveryDate, delivery, message: "Delivery successfully scheduled by dealer" };
   }
 }
