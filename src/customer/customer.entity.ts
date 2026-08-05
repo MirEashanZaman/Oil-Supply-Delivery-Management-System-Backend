@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, BeforeInsert, CreateDateColumn } from "typeorm"
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, BeforeInsert, CreateDateColumn } from "typeorm"
 import { randomUUID } from "crypto";
 import { OrderEntity } from "../order/order.entity";
+import { AdminEntity } from "../admin/admin.entity";
 
 @Entity()
 export class CustomerEntity {
@@ -30,6 +31,9 @@ export class CustomerEntity {
 
     @CreateDateColumn({ type: 'timestamp', nullable: true })
     joiningDate?: Date;
+
+    @ManyToOne(() => AdminEntity, admin => admin.customers, { nullable: true })
+    admin?: AdminEntity;
 
     @BeforeInsert()
     generateCustomerId(): void {
