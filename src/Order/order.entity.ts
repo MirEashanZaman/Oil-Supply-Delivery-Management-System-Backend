@@ -18,10 +18,10 @@ export class OrderEntity {
     @ManyToOne(() => Product)
     product?: Product;
 
-    @ManyToOne(() => Dealer, { nullable: true, onDelete: 'CASCADE' })
+    @ManyToOne(() => Dealer, dealer => dealer.orders, { nullable: true, onDelete: 'CASCADE' })
     dealer?: Dealer;
 
-    @ManyToOne(() => SupplierEntity, { nullable: true, onDelete: 'CASCADE' })
+    @ManyToOne(() => SupplierEntity, supplier => supplier.orders, { nullable: true, onDelete: 'CASCADE' })
     supplier?: SupplierEntity;
 
     @Column({ default: 'pending' })
