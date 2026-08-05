@@ -13,15 +13,15 @@ export class OrderEntity {
     orderNumber?: string;
     @Column({ type: 'int', default: 1 })
     quantity?: number;
-    @ManyToOne(() => CustomerEntity, customer => customer.orders)
+    @ManyToOne(() => CustomerEntity, customer => customer.orders, { onDelete: 'CASCADE' })
     customer?: CustomerEntity;
     @ManyToOne(() => Product)
     product?: Product;
 
-    @ManyToOne(() => Dealer, { nullable: true })
+    @ManyToOne(() => Dealer, { nullable: true, onDelete: 'CASCADE' })
     dealer?: Dealer;
 
-    @ManyToOne(() => SupplierEntity, { nullable: true })
+    @ManyToOne(() => SupplierEntity, { nullable: true, onDelete: 'CASCADE' })
     supplier?: SupplierEntity;
 
     @Column({ default: 'pending' })
