@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto';
 import { Product } from '../product/product.entity';
 import { AdminEntity } from '../admin/admin.entity';
 import { OrderEntity } from '../order/order.entity';
+import { DeliveryEntity } from '../delivery/delivery.entity';
 
 @Entity("supplier")
 export class SupplierEntity {
@@ -47,6 +48,9 @@ export class SupplierEntity {
 
     @OneToMany(() => OrderEntity, order => order.supplier)
     orders?: OrderEntity[];
+
+    @OneToMany(() => DeliveryEntity, delivery => delivery.supplier)
+    deliveries?: DeliveryEntity[];
 
     @BeforeInsert()
     generateSupplierId(): void {
