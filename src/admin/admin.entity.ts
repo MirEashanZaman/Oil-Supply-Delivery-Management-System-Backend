@@ -1,6 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, CreateDateColumn, OneToMany } from "typeorm";
 import { randomUUID } from "crypto";
 import { Product } from "../product/product.entity";
+import { CustomerEntity } from "../customer/customer.entity";
+import { Dealer } from "../dealer/dealer.entity";
+import { SupplierEntity } from "../supplier/supplier.entity";
 
 @Entity("admin")
 export class AdminEntity {
@@ -36,6 +39,15 @@ export class AdminEntity {
 
     @OneToMany(() => Product, product => product.admin)
     products?: Product[];
+
+    @OneToMany(() => CustomerEntity, customer => customer.admin)
+    customers?: CustomerEntity[];
+
+    @OneToMany(() => Dealer, dealer => dealer.admin)
+    dealers?: Dealer[];
+
+    @OneToMany(() => SupplierEntity, supplier => supplier.admin)
+    suppliers?: SupplierEntity[];
 
     @BeforeInsert()
     generateAdminId() {
