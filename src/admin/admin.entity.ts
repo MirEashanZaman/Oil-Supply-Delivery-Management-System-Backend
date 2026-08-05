@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, CreateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, CreateDateColumn, OneToMany } from "typeorm";
 import { randomUUID } from "crypto";
+import { Product } from "../product/product.entity";
 
 @Entity("admin")
 export class AdminEntity {
@@ -32,6 +33,9 @@ export class AdminEntity {
 
     @CreateDateColumn({ type: 'timestamp', nullable: true })
     joiningDate?: Date;
+
+    @OneToMany(() => Product, product => product.admin)
+    products?: Product[];
 
     @BeforeInsert()
     generateAdminId() {
