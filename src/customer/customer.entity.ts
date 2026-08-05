@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, BeforeIns
 import { randomUUID } from "crypto";
 import { OrderEntity } from "../order/order.entity";
 import { AdminEntity } from "../admin/admin.entity";
+import { PaymentEntity } from "../payment/payment.entity";
 
 @Entity()
 export class CustomerEntity {
@@ -42,4 +43,7 @@ export class CustomerEntity {
 
     @OneToMany(() => OrderEntity, order => order.customer)
     orders?: OrderEntity[];
+
+    @OneToMany(() => PaymentEntity, payment => payment.customer)
+    payments?: PaymentEntity[];
 }
