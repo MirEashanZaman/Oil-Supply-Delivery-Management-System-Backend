@@ -1,7 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany, BeforeInsert } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany, ManyToOne, BeforeInsert } from 'typeorm';
 import { Category } from '../category/category.entity';
 import { Dealer } from '../dealer/dealer.entity';
 import { SupplierEntity } from '../supplier/supplier.entity';
+import { AdminEntity } from '../admin/admin.entity';
 import { randomUUID } from 'crypto';
 @Entity()
 export class Product {
@@ -22,6 +23,9 @@ export class Product {
 
     @ManyToMany(() => SupplierEntity, supplier => supplier.products)
     suppliers?: SupplierEntity[];
+
+    @ManyToOne(() => AdminEntity, admin => admin.products, { nullable: true })
+    admin?: AdminEntity;
 
     @BeforeInsert()
     generateProductId(): void {
