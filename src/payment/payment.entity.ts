@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { CustomerEntity } from '../customer/customer.entity';
 
 @Entity()
 export class PaymentEntity {
@@ -21,6 +22,9 @@ export class PaymentEntity {
 
     @Column({ type: 'date', nullable: true })
     expireDate?: Date;
+
+    @ManyToOne(() => CustomerEntity, customer => customer.payments, { nullable: true, onDelete: 'CASCADE' })
+    customer?: CustomerEntity;
 
     authorized(): boolean {
         return this.status === 'completed' || this.status === 'authorized';
