@@ -1,7 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert, ManyToMany, JoinTable, CreateDateColumn, ManyToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert, ManyToMany, JoinTable, CreateDateColumn, ManyToOne, OneToMany } from 'typeorm';
 import { randomUUID } from 'crypto';
 import { Product } from '../product/product.entity';
 import { AdminEntity } from '../admin/admin.entity';
+import { OrderEntity } from '../order/order.entity';
 
 @Entity()
 export class Dealer {
@@ -42,6 +43,9 @@ export class Dealer {
     @ManyToMany(() => Product, product => product.dealers)
     @JoinTable({ name: 'dealer_products' })
     products?: Product[];
+
+    @OneToMany(() => OrderEntity, order => order.dealer)
+    orders?: OrderEntity[];
 
     @BeforeInsert()
     generateDealerId(): void {
