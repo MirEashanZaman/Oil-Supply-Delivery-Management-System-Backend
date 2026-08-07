@@ -4,7 +4,6 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { AdminEntity } from './admin.entity';
-
 import { CustomerEntity } from '../customer/customer.entity';
 import { Dealer } from '../dealer/dealer.entity';
 import { SupplierEntity } from '../supplier/supplier.entity';
