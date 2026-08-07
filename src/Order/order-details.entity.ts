@@ -21,14 +21,14 @@ export class OrderDetailsEntity {
     @Column({ type: 'double precision', default: 0 })
     discount?: number;
 
-    @OneToOne(() => OrderEntity)
+    @OneToOne(() => OrderEntity, { onDelete: 'CASCADE' })
     @JoinColumn()
     order?: OrderEntity;
 
     @ManyToOne(() => Product)
     product?: Product;
 
-    @OneToOne(() => PaymentEntity)
+    @OneToOne(() => PaymentEntity, { onDelete: 'CASCADE' })
     @JoinColumn()
     payment?: PaymentEntity;
 

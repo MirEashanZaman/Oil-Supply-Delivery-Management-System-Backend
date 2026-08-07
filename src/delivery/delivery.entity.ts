@@ -14,7 +14,7 @@ export class DeliveryEntity {
     @Column({ default: 'pending' })
     deliveryStatus?: string;
 
-    @ManyToOne(() => OrderDetailsEntity, orderDetails => orderDetails.deliveries)
+    @ManyToOne(() => OrderDetailsEntity, orderDetails => orderDetails.deliveries, { onDelete: 'CASCADE' })
     orderDetails?: OrderDetailsEntity;
 
     @ManyToOne(() => Dealer, { nullable: true })
