@@ -40,7 +40,15 @@ export class CustomerService {
     }
 
     async getAllCustomer(): Promise<CustomerEntity[]> {
-        return this.customerRepository.find({ relations: { orders: true } });
+        return this.customerRepository.find({
+            relations: {
+                orders: {
+                    product: true,
+                    supplier: true,
+                    dealer: true,
+                },
+            },
+        });
     }
 
     async getCustomerByID(id: number): Promise<CustomerEntity | null> {
@@ -104,11 +112,17 @@ export class CustomerService {
             supplier = await this.supplierRepository.findOneBy({ id: order.supplier.id });
         }
 
+        const resolvedSupplierId = supplier?.id ?? (order.supplierId ? Number(order.supplierId) : null);
+        const resolvedDealerId = dealer?.id ?? (order.dealerId ? Number(order.dealerId) : null);
+
         const newOrder = this.orderRepository.create({
             ...order,
+            sourceType: order.sourceType || (resolvedSupplierId ? 'supplier' : resolvedDealerId ? 'dealer' : 'customer'),
+            supplierId: resolvedSupplierId || undefined,
+            dealerId: resolvedDealerId || undefined,
             customer: customer,
             dealer: dealer || undefined,
-            supplier: supplier || undefined
+            supplier: supplier || undefined,
         } as DeepPartial<OrderEntity>);
         const savedOrder = await this.orderRepository.save(newOrder);
 
@@ -137,7 +151,14 @@ export class CustomerService {
         return savedOrder;
     }
     async getOrdersByCustomerId(customerId: string): Promise<OrderEntity[]> {
-        return this.orderRepository.find({ where: { customer: { id: Number(customerId) } } });
+        return this.orderRepository.find({
+            where: { customer: { id: Number(customerId) } },
+            relations: {
+                product: true,
+                supplier: true,
+                dealer: true,
+            },
+        });
     }
 
     async deleteOrder(customerId: string, orderId: string): Promise<{ message: string }> {
@@ -164,6 +185,25 @@ export class CustomerService {
             throw new NotFoundException('Order not found');
         }
         return { orderId: orderId, status: "Processing", order: order };
+    }
+
+    async confirmOrder(orderId: number, status: string = 'delivered') {
+        const order = await this.orderRepository.findOne({ where: { id: orderId } });
+        if (!order) throw new NotFoundException('Order not found');
+
+        const nextStatus = status.toLowerCase();
+        order.status = nextStatus;
+        await this.orderRepository.save(order);
+
+        const delivery = await this.deliveryRepository.findOne({
+            where: { orderDetails: { order: { id: orderId } } }
+        });
+        if (delivery) {
+            delivery.deliveryStatus = nextStatus === 'delivered' ? 'delivered' : 'processing';
+            await this.deliveryRepository.save(delivery);
+        }
+
+        return { order, delivery, message: `Order status updated to ${nextStatus} by customer` };
     }
 
     async findByUsername(username: string): Promise<CustomerEntity | null> {
