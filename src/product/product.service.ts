@@ -28,7 +28,7 @@ export class ProductService {
         }
     }
     async getProductsWithCategories(): Promise<Product[]> {
-        return this.productRepository.find({ relations: { categories: true } });
+        return this.productRepository.find({ relations: { categories: true, suppliers: true, dealers: true } });
     }
 
     async updateProductQuantity(productId: number, quantity: number): Promise<Product | { message: string }> {
@@ -49,7 +49,7 @@ export class ProductService {
     }
 
     async getAllProducts(): Promise<Product[]> {
-        return this.productRepository.find({ relations: { categories: true } });
+        return this.productRepository.find({ relations: { categories: true, suppliers: true, dealers: true } });
     }
 
     async updatePrice(productId: number, price: number): Promise<Product | { message: string }> {

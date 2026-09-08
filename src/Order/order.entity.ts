@@ -13,6 +13,16 @@ export class OrderEntity {
     orderNumber?: string;
     @Column({ type: 'int', default: 1 })
     quantity?: number;
+
+    @Column({ nullable: true })
+    sourceType?: string;
+
+    @Column({ nullable: true })
+    supplierId?: number;
+
+    @Column({ nullable: true })
+    dealerId?: number;
+
     @ManyToOne(() => CustomerEntity, customer => customer.orders, { onDelete: 'CASCADE' })
     customer?: CustomerEntity;
     @ManyToOne(() => Product)
