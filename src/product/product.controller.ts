@@ -41,6 +41,11 @@ export class ProductController {
         return this.productService.removeProductFromCategory(Number(productId), Number(categoryId));
     }
 
+    @Delete(':id')
+    async deleteProduct(@Param('id') id: string) {
+        return this.productService.deleteProduct(Number(id));
+    }
+
     @Get('with-categories')
     async getProductsWithCategories() {
         return this.productService.getProductsWithCategories();
