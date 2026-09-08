@@ -106,6 +106,11 @@ export class CustomerController {
         return this.customerService.trackOrderStatus(Number(id));
     }
 
+    @Put('confirmorder/:id')
+    confirmOrder(@Param('id') id: string, @Body('status') status?: string) {
+        return this.customerService.confirmOrder(Number(id), status);
+    }
+
     @Patch(':id')
     patchCustomer(@Param('id') id: string, @Body() data: Partial<CustomerDTO>) {
         return this.customerService.patchCustomer(Number(id), data);

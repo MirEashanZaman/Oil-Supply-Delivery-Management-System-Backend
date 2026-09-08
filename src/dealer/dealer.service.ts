@@ -94,10 +94,14 @@ export class DealerService {
 
     const order = this.orderRepository.create({
       quantity: orderData.quantity || 1,
+      sourceType: orderData.sourceType || 'dealer',
+      supplierId: supplier?.id ?? orderData.supplierId ?? undefined,
+      dealerId: dealer.id,
       product: product || undefined,
       dealer: dealer,
-      supplier: supplier || undefined
+      supplier: supplier || undefined,
     });
+
     return await this.orderRepository.save(order);
   }
 
