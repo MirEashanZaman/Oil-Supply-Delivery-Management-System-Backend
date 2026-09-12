@@ -6,6 +6,6 @@ export class Category {
     id?: number;
     @Column()
     name?: string;
-    @ManyToOne(() => Product, product => product.categories)
+    @ManyToOne(() => Product, product => product.categories, { onDelete: 'CASCADE' })
     product?: Product;
 }
