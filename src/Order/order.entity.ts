@@ -25,7 +25,7 @@ export class OrderEntity {
 
     @ManyToOne(() => CustomerEntity, customer => customer.orders, { onDelete: 'CASCADE' })
     customer?: CustomerEntity;
-    @ManyToOne(() => Product)
+    @ManyToOne(() => Product, { onDelete: 'CASCADE', nullable: true })
     product?: Product;
 
     @ManyToOne(() => Dealer, dealer => dealer.orders, { nullable: true, onDelete: 'CASCADE' })
