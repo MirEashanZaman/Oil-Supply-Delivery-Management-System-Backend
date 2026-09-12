@@ -3,6 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from './product.entity';
 import { Category } from '../category/category.entity';
+import { OrderEntity } from '../order/order.entity';
+import { OrderDetailsEntity } from '../order/order-details.entity';
+
 @Injectable()
 export class ProductService {
     constructor(
@@ -10,6 +13,8 @@ export class ProductService {
         private productRepository: Repository<Product>,
         @InjectRepository(Category)
         private categoryRepository: Repository<Category>,
+        @InjectRepository(OrderEntity)
+        private orderRepository: Repository<OrderEntity>,
     ) { }
     async addProductToCategory(productId: number, categoryId: number): Promise<void> {
         const product = await this.productRepository.findOneBy({ id: productId });
@@ -64,8 +69,34 @@ export class ProductService {
         return this.productRepository.save(product);
     }
 
-    async deleteProduct(productId: number): Promise<void> {
-        await this.productRepository.delete(productId);
+    async deleteProduct(productId: number): Promise<{ message: string }> {
+        const product = await this.productRepository.findOne({
+            where: { id: productId },
+            relations: { categories: true, suppliers: true, dealers: true },
+        });
+
+        if (!product) {
+            return { message: 'Product not found' };
+        }
+
+        await this.productRepository.manager.transaction(async (manager) => {
+            const categoryRepo = manager.getRepository(Category);
+            const orderRepo = manager.getRepository(OrderEntity);
+            const orderDetailsRepo = manager.getRepository(OrderDetailsEntity);
+            const productRepo = manager.getRepository(Product);
+
+            await manager.query('DELETE FROM "order_details_entity" WHERE "productId" = $1', [productId]);
+            await manager.query('DELETE FROM "order_entity" WHERE "productId" = $1', [productId]);
+            await manager.query('DELETE FROM "supplier_products" WHERE "productId" = $1', [productId]);
+            await manager.query('DELETE FROM "dealer_products" WHERE "productId" = $1', [productId]);
+            await categoryRepo.delete({ product: { id: productId } as any });
+            await orderRepo.delete({ product: { id: productId } as any });
+            await orderDetailsRepo.delete({ product: { id: productId } as any });
+
+            await productRepo.delete(productId);
+        });
+
+        return { message: 'Product deleted successfully' };
     }
 
     async updateStock(productId: number, stock: number): Promise<Product | { message: string }> {
