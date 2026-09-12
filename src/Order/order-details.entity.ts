@@ -25,7 +25,7 @@ export class OrderDetailsEntity {
     @JoinColumn()
     order?: OrderEntity;
 
-    @ManyToOne(() => Product)
+    @ManyToOne(() => Product, { onDelete: 'CASCADE', nullable: true })
     product?: Product;
 
     @OneToOne(() => PaymentEntity, { onDelete: 'CASCADE' })
