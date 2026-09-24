@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PaymentEntity } from './payment.entity';
@@ -11,8 +11,15 @@ export class PaymentService {
     ) { }
 
     async processPayment(paymentData: Partial<PaymentEntity>) {
+        if (paymentData.cardNumber) {
+            throw new BadRequestException('Raw card numbers must not be sent to the API. Use a payment token.');
+        }
+
         const payment = this.paymentRepo.create({
-            ...paymentData,
+            amount: paymentData.amount,
+            cardType: paymentData.cardType,
+            paymentMethod: paymentData.paymentMethod,
+            paymentReference: paymentData.paymentReference,
             status: paymentData.status || 'completed',
         });
         return this.paymentRepo.save(payment);
