@@ -8,8 +8,13 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
   app.use(cookieParser());
 
+  const allowedOrigins = (process.env.FRONTEND_ORIGINS || 'http://localhost:5000')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
   app.enableCors({
-    origin: 'http://localhost:5000',
+    origin: allowedOrigins,
     credentials: true,
   });
   await app.listen(8000);
