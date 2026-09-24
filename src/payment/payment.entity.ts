@@ -9,6 +9,9 @@ export class PaymentEntity {
     @Column({ default: 'pending' })
     status?: string;
 
+    @Column({ type: 'double precision', nullable: true })
+    amount?: number;
+
     // Cash Payment Details
     @Column({ type: 'double precision', nullable: true })
     cashTenderer?: number;
@@ -16,6 +19,12 @@ export class PaymentEntity {
     // Card Payment Details
     @Column({ nullable: true })
     cardNumber?: string;
+
+    @Column({ nullable: true })
+    paymentReference?: string;
+
+    @Column({ nullable: true })
+    paymentMethod?: string;
 
     @Column({ nullable: true })
     cardType?: string;

@@ -57,13 +57,10 @@ export class AuthController {
         res.cookie("access_token", result.access_token, {
             httpOnly: true,
             sameSite: "lax",
-            secure: false,
+            secure: process.env.NODE_ENV === 'production',
             path: "/",
-            maxAge: 300 * 60 * 1000,
+            maxAge: 30 * 60 * 1000,
         });
-        return {
-            message: 'Login successful',
-            user: result,
-        };
+        return { message: 'Login successful' };
     }
 }

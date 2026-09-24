@@ -126,9 +126,17 @@ export class CustomerService {
         } as DeepPartial<OrderEntity>);
         const savedOrder = await this.orderRepository.save(newOrder);
 
-        const payment = this.paymentRepository.create(
-            ((order as any).payment as DeepPartial<PaymentEntity>) || { status: 'pending' }
-        );
+        const submittedPayment = (order as any).payment as DeepPartial<PaymentEntity> | undefined;
+        if (submittedPayment?.cardNumber) {
+            throw new BadRequestException('Raw card numbers must not be sent to the API. Use a payment token.');
+        }
+        const payment = this.paymentRepository.create({
+            amount: submittedPayment?.amount,
+            cardType: submittedPayment?.cardType,
+            paymentMethod: submittedPayment?.paymentMethod,
+            paymentReference: submittedPayment?.paymentReference,
+            status: submittedPayment?.status || 'pending',
+        });
         const savedPayment = await this.paymentRepository.save(payment);
 
         const orderDetails = this.orderDetailsRepository.create({
