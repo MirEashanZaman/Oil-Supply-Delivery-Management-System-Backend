@@ -26,7 +26,11 @@ export class AuthService {
             throw new UnauthorizedException();
         }
         return {
-            access_token: await this.jwtService.signAsync({ ...logindata }),
+            access_token: await this.jwtService.signAsync({
+                sub: user.id,
+                email: user.email,
+                role: user.title || 'Admin',
+            }),
         };
     }
 }
