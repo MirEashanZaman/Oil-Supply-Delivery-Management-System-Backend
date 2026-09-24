@@ -38,7 +38,6 @@ export class AuthController {
         }
         const salt = await bcrypt.genSalt();
         const hashedpassword = await bcrypt.hash(myobj.password, salt);
-
         const customer = myobj as CustomerDTO & { username?: string; filename?: string };
         customer.username = customer.userName;
         customer.password = hashedpassword;
