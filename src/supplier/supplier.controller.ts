@@ -1,8 +1,10 @@
-import { Controller, Get, Param, Query, Body, Post, UsePipes, ValidationPipe, Put, Patch, Delete, UseGuards } from "@nestjs/common";
+import { Controller, Get, Param, Query, Body, Post, UsePipes, ValidationPipe, Put, Patch, Delete, UseGuards, UseInterceptors, UploadedFile } from "@nestjs/common";
 import { AuthGuard } from './auth/auth.guard';
 import { SupplierService } from "./supplier.service"
 import { SupplierDTO } from "./supplier.dto";
 import { SupplierEntity } from "./supplier.entity";
+import { FileInterceptor } from '@nestjs/platform-express';
+import { MulterError, diskStorage } from 'multer';
 
 @Controller('supplier')
 @UseGuards(AuthGuard)
@@ -76,8 +78,59 @@ export class SupplierController {
     }
 
     @Patch(':id')
-    patchSupplier(@Param('id') id: string, @Body() data: Partial<SupplierDTO>) {
-        return this.supplierService.patchSupplier(Number(id), data);
+    @UseInterceptors(FileInterceptor('photo', {
+        fileFilter: (req, file, cb) => {
+            if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
+                cb(null, true);
+            } else {
+                cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'photo'), false);
+            }
+        },
+        limits: { fileSize: 30 * 1024 * 1024 },
+        storage: diskStorage({
+            destination: './uploads',
+            filename: function (req, file, cb) {
+                cb(null, Date.now() + file.originalname);
+            },
+        }),
+    }))
+    patchSupplier(
+        @Param('id') id: string,
+        @Body() data: Partial<SupplierDTO>,
+        @UploadedFile() file?: Express.Multer.File,
+    ) {
+        const payload = { ...data };
+        if (file?.filename) {
+            payload.filename = file.filename;
+        }
+        return this.supplierService.patchSupplier(Number(id), payload);
+    }
+
+    @Post(':id/upload-photo')
+    @UseInterceptors(FileInterceptor('photo', {
+        fileFilter: (req, file, cb) => {
+            if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
+                cb(null, true);
+            } else {
+                cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'photo'), false);
+            }
+        },
+        limits: { fileSize: 30 * 1024 * 1024 },
+        storage: diskStorage({
+            destination: './uploads',
+            filename: function (req, file, cb) {
+                cb(null, Date.now() + file.originalname);
+            },
+        }),
+    }))
+    uploadSupplierPhoto(
+        @Param('id') id: string,
+        @UploadedFile() file?: Express.Multer.File,
+    ) {
+        if (!file?.filename) {
+            return { error: 'No image uploaded' };
+        }
+        return this.supplierService.patchSupplier(Number(id), { filename: file.filename });
     }
 
     @Delete(':id')

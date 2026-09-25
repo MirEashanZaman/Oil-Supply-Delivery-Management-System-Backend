@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Body, Put, Patch, Param, Delete, UsePipes, ValidationPipe, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Patch, Param, Delete, UsePipes, ValidationPipe, UseGuards, Req, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { AuthGuard } from './auth/auth.guard';
 import { DealerService } from './dealer.service';
 import { Dealer } from './dealer.entity';
 import { DealerDTO } from './dealer.dto';
 import { Request } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { MulterError, diskStorage } from 'multer';
 
 @Controller('dealer')
 @UseGuards(AuthGuard)
@@ -66,8 +68,59 @@ export class DealerController {
   }
 
   @Patch(':id')
-  patchDealer(@Param('id') id: string, @Body() data: Partial<DealerDTO>) {
-    return this.dealerService.patchDealer(Number(id), data);
+  @UseInterceptors(FileInterceptor('photo', {
+    fileFilter: (req, file, cb) => {
+      if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
+        cb(null, true);
+      } else {
+        cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'photo'), false);
+      }
+    },
+    limits: { fileSize: 30 * 1024 * 1024 },
+    storage: diskStorage({
+      destination: './uploads',
+      filename: function (req, file, cb) {
+        cb(null, Date.now() + file.originalname);
+      },
+    }),
+  }))
+  patchDealer(
+    @Param('id') id: string,
+    @Body() data: Partial<DealerDTO>,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    const payload = { ...data };
+    if (file?.filename) {
+      payload.filename = file.filename;
+    }
+    return this.dealerService.patchDealer(Number(id), payload);
+  }
+
+  @Post(':id/upload-photo')
+  @UseInterceptors(FileInterceptor('photo', {
+    fileFilter: (req, file, cb) => {
+      if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
+        cb(null, true);
+      } else {
+        cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'photo'), false);
+      }
+    },
+    limits: { fileSize: 30 * 1024 * 1024 },
+    storage: diskStorage({
+      destination: './uploads',
+      filename: function (req, file, cb) {
+        cb(null, Date.now() + file.originalname);
+      },
+    }),
+  }))
+  uploadDealerPhoto(
+    @Param('id') id: string,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    if (!file?.filename) {
+      return { error: 'No image uploaded' };
+    }
+    return this.dealerService.patchDealer(Number(id), { filename: file.filename });
   }
 
   @Post('send-email')

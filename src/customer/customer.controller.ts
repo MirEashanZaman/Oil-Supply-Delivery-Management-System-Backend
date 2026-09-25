@@ -112,8 +112,59 @@ export class CustomerController {
     }
 
     @Patch(':id')
-    patchCustomer(@Param('id') id: string, @Body() data: Partial<CustomerDTO>) {
-        return this.customerService.patchCustomer(Number(id), data);
+    @UseInterceptors(FileInterceptor('photo', {
+        fileFilter: (req, file, cb) => {
+            if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
+                cb(null, true);
+            } else {
+                cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'photo'), false);
+            }
+        },
+        limits: { fileSize: 30 * 1024 * 1024 },
+        storage: diskStorage({
+            destination: './uploads',
+            filename: function (req, file, cb) {
+                cb(null, Date.now() + file.originalname);
+            },
+        }),
+    }))
+    patchCustomer(
+        @Param('id') id: string,
+        @Body() data: Partial<CustomerDTO>,
+        @UploadedFile() file?: Express.Multer.File,
+    ) {
+        const payload = { ...data };
+        if (file?.filename) {
+            payload.filename = file.filename;
+        }
+        return this.customerService.patchCustomer(Number(id), payload);
+    }
+
+    @Post(':id/upload-photo')
+    @UseInterceptors(FileInterceptor('photo', {
+        fileFilter: (req, file, cb) => {
+            if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
+                cb(null, true);
+            } else {
+                cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'photo'), false);
+            }
+        },
+        limits: { fileSize: 30 * 1024 * 1024 },
+        storage: diskStorage({
+            destination: './uploads',
+            filename: function (req, file, cb) {
+                cb(null, Date.now() + file.originalname);
+            },
+        }),
+    }))
+    uploadCustomerPhoto(
+        @Param('id') id: string,
+        @UploadedFile() file?: Express.Multer.File,
+    ) {
+        if (!file?.filename) {
+            return { error: 'No image uploaded' };
+        }
+        return this.customerService.patchCustomer(Number(id), { filename: file.filename });
     }
 
     @Post('send-email')

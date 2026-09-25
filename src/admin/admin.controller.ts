@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Patch, Delete, Query, UsePipes, ValidationPipe, UseGuards, Req } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Patch, Delete, Query, UsePipes, ValidationPipe, UseGuards, Req, UseInterceptors, UploadedFile } from "@nestjs/common";
 import { AuthGuard } from './auth/auth.guard';
 import { AdminService } from "./admin.service";
 import { AdminDTO } from "./admin.dto";
@@ -8,6 +8,8 @@ import { DealerDTO } from "../dealer/dealer.dto";
 import { SupplierDTO } from "../supplier/supplier.dto";
 import { OrderEntity } from "../order/order.entity";
 import { Request } from "express";
+import { FileInterceptor } from '@nestjs/platform-express';
+import { MulterError, diskStorage } from 'multer';
 
 @UseGuards(AuthGuard)
 @Controller('admin')
@@ -47,8 +49,61 @@ export class AdminController {
     }
 
     @Patch(':id')
-    patchAdmin(@Param('id') id: string, @Body() data: Partial<AdminDTO>, @Req() req: Request) {
-        return this.adminService.patchAdmin(Number(id), (req as any).user.email, data);
+    @UseInterceptors(FileInterceptor('photo', {
+        fileFilter: (req, file, cb) => {
+            if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
+                cb(null, true);
+            } else {
+                cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'photo'), false);
+            }
+        },
+        limits: { fileSize: 30 * 1024 * 1024 },
+        storage: diskStorage({
+            destination: './uploads',
+            filename: function (req, file, cb) {
+                cb(null, Date.now() + file.originalname);
+            },
+        }),
+    }))
+    patchAdmin(
+        @Param('id') id: string,
+        @Body() data: Partial<AdminDTO>,
+        @Req() req: Request,
+        @UploadedFile() file?: Express.Multer.File,
+    ) {
+        const payload = { ...data };
+        if (file?.filename) {
+            payload.filename = file.filename;
+        }
+        return this.adminService.patchAdmin(Number(id), (req as any).user.email, payload);
+    }
+
+    @Post(':id/upload-photo')
+    @UseInterceptors(FileInterceptor('photo', {
+        fileFilter: (req, file, cb) => {
+            if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
+                cb(null, true);
+            } else {
+                cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'photo'), false);
+            }
+        },
+        limits: { fileSize: 30 * 1024 * 1024 },
+        storage: diskStorage({
+            destination: './uploads',
+            filename: function (req, file, cb) {
+                cb(null, Date.now() + file.originalname);
+            },
+        }),
+    }))
+    uploadAdminPhoto(
+        @Param('id') id: string,
+        @Req() req: Request,
+        @UploadedFile() file?: Express.Multer.File,
+    ) {
+        if (!file?.filename) {
+            return { error: 'No image uploaded' };
+        }
+        return this.adminService.patchAdmin(Number(id), (req as any).user.email, { filename: file.filename });
     }
 
     @Delete(':id')
