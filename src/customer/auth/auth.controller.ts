@@ -1,10 +1,12 @@
-import { Body, Controller, Post, UsePipes, UseInterceptors, UploadedFile, ValidationPipe, Res, BadRequestException } from '@nestjs/common';
+import { Body, Controller, Post, Get, Param, UsePipes, UseInterceptors, UploadedFile, ValidationPipe, Res, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CustomerDTO, loginDTO } from '../customer.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MulterError, diskStorage } from 'multer';
 import * as express from 'express';
 import * as bcrypt from 'bcrypt';
+import * as path from 'path';
+import * as fs from 'fs';
 @Controller('customer/auth')
 export class AuthController {
     constructor(private authService: AuthService) { }
@@ -64,6 +66,8 @@ export class AuthController {
         return { message: 'Login successful', access_token: result.access_token };
     }
 
-
-
+    @Get('getimage/:name')
+    getImages(@Param('name') name: string, @Res() res: express.Response) {
+        res.sendFile(name, { root: './uploads' });
+    }
 }
