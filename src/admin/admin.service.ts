@@ -6,7 +6,7 @@ import { AdminDTO } from "./admin.dto";
 import { CustomerEntity } from "../customer/customer.entity";
 import { Dealer } from "../dealer/dealer.entity";
 import { SupplierEntity } from "../supplier/supplier.entity";
-import { OrderEntity } from "../order/order.entity";
+import { OrderEntity } from "../Order/order.entity";
 import { CustomerDTO } from "../customer/customer.dto";
 import { DealerDTO } from "../dealer/dealer.dto";
 import { SupplierDTO } from "../supplier/supplier.dto";
