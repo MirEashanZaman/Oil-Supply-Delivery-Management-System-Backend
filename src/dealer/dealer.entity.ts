@@ -2,7 +2,7 @@ import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert, ManyToMany, JoinT
 import { randomUUID } from 'crypto';
 import { Product } from '../product/product.entity';
 import { AdminEntity } from '../admin/admin.entity';
-import { OrderEntity } from '../order/order.entity';
+import { OrderEntity } from '../Order/order.entity';
 import { DeliveryEntity } from '../delivery/delivery.entity';
 
 @Entity()
