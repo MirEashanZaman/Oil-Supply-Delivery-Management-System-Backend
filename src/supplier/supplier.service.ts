@@ -115,7 +115,14 @@ export class SupplierService {
     }
 
     async patchSupplier(id: number, data: Partial<SupplierDTO>): Promise<SupplierEntity | null> {
-        await this.SupplierRepository.update(id, data);
+        const updateData: any = { ...data };
+        if (updateData.password) {
+            const isHashed = /^\$2[aby]\$\d{2}\$/.test(updateData.password);
+            if (!isHashed) {
+                updateData.password = await bcrypt.hash(updateData.password, 10);
+            }
+        }
+        await this.SupplierRepository.update(id, updateData);
         return this.SupplierRepository.findOneBy({ id });
     }
 

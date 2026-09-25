@@ -232,6 +232,12 @@ export class CustomerService {
             updateData.username = updateData.userName;
         }
         delete updateData.userName;
+        if (updateData.password) {
+            const isHashed = /^\$2[aby]\$\d{2}\$/.test(updateData.password);
+            if (!isHashed) {
+                updateData.password = await bcrypt.hash(updateData.password, 10);
+            }
+        }
         await this.customerRepository.update(id, updateData);
         return this.customerRepository.findOneBy({ id });
     }

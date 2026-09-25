@@ -110,7 +110,14 @@ export class DealerService {
   }
 
   async patchDealer(id: number, data: Partial<DealerDTO>): Promise<Dealer | null> {
-    await this.dealerRepository.update(id, data as any);
+    const updateData: any = { ...data };
+    if (updateData.password) {
+      const isHashed = /^\$2[aby]\$\d{2}\$/.test(updateData.password);
+      if (!isHashed) {
+        updateData.password = await bcrypt.hash(updateData.password, 10);
+      }
+    }
+    await this.dealerRepository.update(id, updateData);
     return this.dealerRepository.findOneBy({ id });
   }
 
