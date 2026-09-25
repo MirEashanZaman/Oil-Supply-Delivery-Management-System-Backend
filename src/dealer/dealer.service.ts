@@ -5,7 +5,7 @@ import { Dealer } from './dealer.entity';
 import { DealerDTO } from './dealer.dto';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Product } from '../product/product.entity';
-import { OrderEntity } from '../order/order.entity';
+import { OrderEntity } from '../Order/order.entity';
 import { SupplierEntity } from '../supplier/supplier.entity';
 import { DeliveryEntity } from '../delivery/delivery.entity';
 import * as bcrypt from 'bcrypt';
