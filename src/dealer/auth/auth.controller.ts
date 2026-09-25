@@ -54,13 +54,14 @@ export class AuthController {
     ) {
         const result = await this.authService.signIn(logindata);
 
+        const isProd = process.env.NODE_ENV === 'production';
         res.cookie("access_token", result.access_token, {
             httpOnly: true,
-            sameSite: "lax",
-            secure: process.env.NODE_ENV === 'production',
+            sameSite: isProd ? "none" : "lax",
+            secure: isProd,
             path: "/",
             maxAge: 30 * 60 * 1000,
         });
-        return { message: 'Login successful' };
+        return { message: 'Login successful', access_token: result.access_token };
     }
 }
