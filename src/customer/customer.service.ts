@@ -226,8 +226,13 @@ export class CustomerService {
         await this.customerRepository.delete({ username });
     }
 
-    async patchCustomer(id: number, data: Partial<CustomerDTO>): Promise<CustomerEntity | null> {
-        await this.customerRepository.update(id, data as any);
+    async patchCustomer(id: number, data: Partial<CustomerDTO> & { username?: string }): Promise<CustomerEntity | null> {
+        const updateData: any = { ...data };
+        if (updateData.userName && !updateData.username) {
+            updateData.username = updateData.userName;
+        }
+        delete updateData.userName;
+        await this.customerRepository.update(id, updateData);
         return this.customerRepository.findOneBy({ id });
     }
 }
