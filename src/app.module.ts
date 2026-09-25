@@ -17,17 +17,42 @@ import { PaymentModule } from './payment/payment.module';
 import { DeliveryModule } from './delivery/delivery.module';
 
 @Module({
-  imports: [AdminModule, CustomerModule, SupplierModule, DealerModule, CategoryModule, ProductModule, PaymentModule, DeliveryModule, TypeOrmModule.forRoot(
-    {
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: '12345',
-      database: 'Oil-Supply-Delivery-Management-System',//Change to your database name
-      autoLoadEntities: true,
-      synchronize: true,
-    }), AuthModule, AdminAuthModule, DealerAuthModule, SupplierAuthModule, UsersModule,],
+  imports: [
+    AdminModule,
+    CustomerModule,
+    SupplierModule,
+    DealerModule,
+    CategoryModule,
+    ProductModule,
+    PaymentModule,
+    DeliveryModule,
+    TypeOrmModule.forRoot(
+      process.env.DATABASE_URL
+        ? {
+            type: 'postgres',
+            url: process.env.DATABASE_URL,
+            autoLoadEntities: true,
+            synchronize: true,
+            ssl: process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false },
+          }
+        : {
+            type: 'postgres',
+            host: process.env.DB_HOST || 'localhost',
+            port: Number(process.env.DB_PORT) || 5432,
+            username: process.env.DB_USERNAME || 'postgres',
+            password: process.env.DB_PASSWORD || '12345',
+            database: process.env.DB_NAME || 'Oil-Supply-Delivery-Management-System',
+            autoLoadEntities: true,
+            synchronize: true,
+            ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+          },
+    ),
+    AuthModule,
+    AdminAuthModule,
+    DealerAuthModule,
+    SupplierAuthModule,
+    UsersModule,
+  ],
 
   controllers: [AppController],
   providers: [AppService],
