@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { OrderDetailsEntity } from '../order/order-details.entity';
+import { OrderDetailsEntity } from '../Order/order-details.entity';
 import { Dealer } from '../dealer/dealer.entity';
 import { SupplierEntity } from '../supplier/supplier.entity';
 
