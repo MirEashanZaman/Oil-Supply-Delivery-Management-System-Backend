@@ -17,7 +17,7 @@ async function bootstrap() {
     origin: allowedOrigins,
     credentials: true,
   });
-  await app.listen(8000);
+  await app.listen(Number(process.env.PORT) || 8000, '0.0.0.0');
 
 }
 bootstrap();
