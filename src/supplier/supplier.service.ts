@@ -7,7 +7,7 @@ import { UpdateResult } from "typeorm";
 import { MailerService } from '@nestjs-modules/mailer';
 import { Product } from '../product/product.entity';
 import * as bcrypt from 'bcrypt';
-import { OrderEntity } from '../order/order.entity';
+import { OrderEntity } from '../Order/order.entity';
 import { DeliveryEntity } from '../delivery/delivery.entity';
 
 
