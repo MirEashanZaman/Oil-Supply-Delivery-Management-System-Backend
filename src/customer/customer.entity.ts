@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, BeforeInsert, CreateDateColumn } from "typeorm"
 import { randomUUID } from "crypto";
-import { OrderEntity } from "../order/order.entity";
+import { OrderEntity } from "../Order/order.entity";
 import { AdminEntity } from "../admin/admin.entity";
 import { PaymentEntity } from "../payment/payment.entity";
 
