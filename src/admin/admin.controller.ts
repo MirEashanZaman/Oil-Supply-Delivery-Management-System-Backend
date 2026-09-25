@@ -6,7 +6,7 @@ import { AdminEntity } from "./admin.entity";
 import { CustomerDTO } from "../customer/customer.dto";
 import { DealerDTO } from "../dealer/dealer.dto";
 import { SupplierDTO } from "../supplier/supplier.dto";
-import { OrderEntity } from "../Order/order.entity";
+import { OrderEntity } from "../order/order.entity";
 import { Request } from "express";
 
 @UseGuards(AuthGuard)

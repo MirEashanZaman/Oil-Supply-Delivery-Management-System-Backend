@@ -10,7 +10,7 @@ import { AuthModule } from './customer/auth/auth.module';
 import { AuthModule as AdminAuthModule } from './admin/auth/auth.module';
 import { AuthModule as DealerAuthModule } from './dealer/auth/auth.module';
 import { AuthModule as SupplierAuthModule } from './supplier/auth/auth.module';
-import { UsersModule } from './Users/users.module';
+import { UsersModule } from './users/users.module';
 import { CategoryModule } from './category/category.module';
 import { ProductModule } from './product/product.module';
 import { PaymentModule } from './payment/payment.module';

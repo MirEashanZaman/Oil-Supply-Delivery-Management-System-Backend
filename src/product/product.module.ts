@@ -4,7 +4,7 @@ import { Product } from './product.entity';
 import { Category } from '../category/category.entity';
 import { ProductService } from './product.service';
 import { ProductController } from './product.controller';
-import { OrderEntity } from '../Order/order.entity';
+import { OrderEntity } from '../order/order.entity';
 
 @Module({
     imports: [TypeOrmModule.forFeature([Product, Category, OrderEntity])],

@@ -7,7 +7,7 @@ import { AdminEntity } from './admin.entity';
 import { CustomerEntity } from '../customer/customer.entity';
 import { Dealer } from '../dealer/dealer.entity';
 import { SupplierEntity } from '../supplier/supplier.entity';
-import { OrderEntity } from '../Order/order.entity';
+import { OrderEntity } from '../order/order.entity';
 
 @Module({
     imports: [

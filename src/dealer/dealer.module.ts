@@ -6,7 +6,7 @@ import { DealerService } from './dealer.service';
 import { DealerController } from './dealer.controller';
 import { Product } from '../product/product.entity';
 
-import { OrderEntity } from '../Order/order.entity';
+import { OrderEntity } from '../order/order.entity';
 import { SupplierEntity } from '../supplier/supplier.entity';
 import { DeliveryEntity } from '../delivery/delivery.entity';
 
