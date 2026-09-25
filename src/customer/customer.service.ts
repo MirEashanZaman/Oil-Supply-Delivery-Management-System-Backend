@@ -139,13 +139,15 @@ export class CustomerService {
         });
         const savedPayment = await this.paymentRepository.save(payment);
 
+        const submittedDiscount = Number((order as any).discount) || 0;
+
         const orderDetails = this.orderDetailsRepository.create({
             quantity: order.quantity || 1,
             unitPrice: product ? product.price : 0,
             order: savedOrder,
             product: product || undefined,
             payment: savedPayment,
-            discount: 0
+            discount: submittedDiscount
         } as DeepPartial<OrderDetailsEntity>);
         const savedOrderDetails = await this.orderDetailsRepository.save(orderDetails);
 
