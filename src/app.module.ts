@@ -15,6 +15,7 @@ import { CategoryModule } from './category/category.module';
 import { ProductModule } from './product/product.module';
 import { PaymentModule } from './payment/payment.module';
 import { DeliveryModule } from './delivery/delivery.module';
+import { ReviewModule } from './review/review.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { DeliveryModule } from './delivery/delivery.module';
     ProductModule,
     PaymentModule,
     DeliveryModule,
+    ReviewModule,
     TypeOrmModule.forRoot(
       process.env.DATABASE_URL
         ? {
@@ -58,3 +60,4 @@ import { DeliveryModule } from './delivery/delivery.module';
   providers: [AppService],
 })
 export class AppModule { }
+
