@@ -1,12 +1,12 @@
 import { Body, Controller, Post, Get, Param, UsePipes, UseInterceptors, UploadedFile, ValidationPipe, Res, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CustomerDTO, loginDTO } from '../customer.dto';
+import { ForgotPasswordRequestDto, ResetPasswordWithOtpDto } from '../dto/forgot-password.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MulterError, diskStorage } from 'multer';
 import * as express from 'express';
 import * as bcrypt from 'bcrypt';
-import * as path from 'path';
-import * as fs from 'fs';
+
 @Controller('customer/auth')
 export class AuthController {
     constructor(private authService: AuthService) { }
@@ -64,6 +64,23 @@ export class AuthController {
             maxAge: 30 * 60 * 1000,
         });
         return { message: 'Login successful', access_token: result.access_token };
+    }
+
+    @Post('forgot-password')
+    @UsePipes(new ValidationPipe({ whitelist: true }))
+    async forgotPassword(@Body() body: ForgotPasswordRequestDto) {
+        return this.authService.generateStatelessOtp(body.email);
+    }
+
+    @Post('reset-password')
+    @UsePipes(new ValidationPipe({ whitelist: true }))
+    async resetPassword(@Body() body: ResetPasswordWithOtpDto) {
+        return this.authService.resetPasswordWithStatelessOtp(
+            body.email,
+            body.otp,
+            body.resetToken,
+            body.newPassword
+        );
     }
 
     @Get('getimage/:name')
