@@ -16,10 +16,13 @@ import { OrderSubject, EmailNotificationObserver, AuditLogObserver, RealtimeDisp
 import { OrderFulfillmentSagaOrchestrator, SagaContext, SagaStep } from '../patterns/saga/order-saga';
 import { PaymentStrategyResolver } from '../patterns/strategy/payment-strategy';
 
+import { OrderFulfillmentFacade } from '../patterns/facade/order-fulfillment.facade';
+
 @Injectable()
 export class CustomerService {
     private orderSubject: OrderSubject;
     private paymentStrategyResolver: PaymentStrategyResolver;
+    private orderFacade: OrderFulfillmentFacade;
 
     constructor(
         @InjectRepository(CustomerEntity) private customerRepository: Repository<CustomerEntity>,
@@ -37,6 +40,18 @@ export class CustomerService {
         this.orderSubject.attach(new AuditLogObserver());
         this.orderSubject.attach(new RealtimeDispatchObserver());
         this.paymentStrategyResolver = new PaymentStrategyResolver();
+        this.orderFacade = new OrderFulfillmentFacade(
+            this.customerRepository,
+            this.productRepository,
+            this.dealerRepository,
+            this.supplierRepository,
+            this.orderRepository,
+            this.orderDetailsRepository,
+            this.paymentRepository,
+            this.deliveryRepository,
+            this.paymentStrategyResolver,
+            this.orderSubject,
+        );
     }
 
     async sendEmail(to: string, subject: string, text: string) {
@@ -95,138 +110,28 @@ export class CustomerService {
     }
 
     async createOrder(customerId: string, order: OrderEntity): Promise<any> {
-        const customer = await this.customerRepository.findOneBy({ id: Number(customerId) });
-        if (!customer) {
-            throw new NotFoundException('Customer not found');
-        }
-
-        let product: Product | null = null;
-        if (order.product && order.product.id) {
-            product = await this.productRepository.findOneBy({ id: order.product.id });
-            if (!product || !product.quantity || product.quantity <= 0) {
-                throw new BadRequestException('Low stock');
-            }
-            const requestedQty = order.quantity || 1;
-            if (product.quantity < requestedQty) {
-                throw new BadRequestException('Low stock');
-            }
-            product.quantity = product.quantity - requestedQty;
-            await this.productRepository.save(product);
-        }
-
-        let dealer: Dealer | null = null;
-        if (order.dealer && order.dealer.id) {
-            dealer = await this.dealerRepository.findOneBy({ id: order.dealer.id });
-        }
-
-        let supplier: SupplierEntity | null = null;
-        if (order.supplier && order.supplier.id) {
-            supplier = await this.supplierRepository.findOneBy({ id: order.supplier.id });
-        }
-
-        const resolvedSupplierId = supplier?.id ?? (order.supplierId ? Number(order.supplierId) : null);
-        const resolvedDealerId = dealer?.id ?? (order.dealerId ? Number(order.dealerId) : null);
-
-        const newOrder = this.orderRepository.create({
-            ...order,
-            sourceType: order.sourceType || (resolvedSupplierId ? 'supplier' : resolvedDealerId ? 'dealer' : 'customer'),
-            supplierId: resolvedSupplierId || undefined,
-            dealerId: resolvedDealerId || undefined,
-            customer: customer,
-            dealer: dealer || undefined,
-            supplier: supplier || undefined,
-        } as DeepPartial<OrderEntity>);
-        const savedOrder = await this.orderRepository.save(newOrder);
-
-        // Execute SAGA Orchestration Steps (Inventory Allocation -> Order Record -> Payment Strategy -> Delivery Depot Dispatch)
-        const saga = new OrderFulfillmentSagaOrchestrator();
-
-        // Step 1: Payment Processing via Strategy Pattern
-        saga.addStep({
-            stepName: 'ProcessPaymentStrategyStep',
-            execute: async (ctx: SagaContext) => {
-                const strategy = this.paymentStrategyResolver.resolve(ctx.paymentMethod);
-                const paymentResult = await strategy.pay(ctx.totalAmount, {
-                    paymentMethod: ctx.paymentMethod,
-                    cardType: ctx.cardType,
-                    paymentReference: ctx.paymentReference,
-                });
-                const payment = this.paymentRepository.create({
-                    amount: ctx.totalAmount,
-                    cardType: ctx.cardType,
-                    paymentMethod: strategy.name,
-                    paymentReference: ctx.paymentReference || paymentResult.transactionId,
-                    status: paymentResult.gatewayStatus || 'completed',
-                });
-                const savedPayment = await this.paymentRepository.save(payment);
-                ctx.paymentId = savedPayment.id;
-            },
-            compensate: async (ctx: SagaContext) => {
-                if (ctx.paymentId) {
-                    await this.paymentRepository.update(ctx.paymentId, { status: 'refunded' });
-                }
-            },
-        });
-
         const submittedPayment = (order as any).payment as DeepPartial<PaymentEntity> | undefined;
-        const sagaContext: SagaContext = {
-            customerId: customer.id as number,
-            productId: product ? (product.id as number) : 0,
+        if (submittedPayment?.cardNumber) {
+            throw new BadRequestException('Raw card numbers must not be sent to the API. Use a payment token.');
+        }
+
+        const resolvedSupplierId = order.supplier?.id ?? (order.supplierId ? Number(order.supplierId) : undefined);
+        const resolvedDealerId = order.dealer?.id ?? (order.dealerId ? Number(order.dealerId) : undefined);
+
+        return this.orderFacade.placeOrder({
+            customerId: Number(customerId),
+            productId: order.product?.id,
+            dealerId: resolvedDealerId,
+            supplierId: resolvedSupplierId,
             quantity: order.quantity || 1,
-            unitPrice: product ? Number(product.price) || 0 : 0,
-            totalAmount: Number(submittedPayment?.amount) || (product ? Number(product.price) * (order.quantity || 1) : 0),
-            deliveryAddress: customer.address || 'Default Address',
+            amount: submittedPayment?.amount,
             paymentMethod: submittedPayment?.paymentMethod || 'card',
             cardType: submittedPayment?.cardType,
             paymentReference: submittedPayment?.paymentReference,
-            status: 'PENDING',
-        };
-
-        try {
-            await saga.execute(sagaContext);
-        } catch (sagaErr) {
-            // Restore inventory on transaction failure (SAGA compensation)
-            if (product && order.quantity) {
-                product.quantity = (product.quantity || 0) + (order.quantity || 1);
-                await this.productRepository.save(product);
-            }
-            throw sagaErr;
-        }
-
-        const resolvedPaymentId = sagaContext.paymentId;
-        const savedPayment = resolvedPaymentId ? await this.paymentRepository.findOneBy({ id: resolvedPaymentId }) : null;
-
-        const submittedDiscount = Number((order as any).discount) || 0;
-
-        const orderDetails = this.orderDetailsRepository.create({
-            quantity: order.quantity || 1,
-            unitPrice: product ? product.price : 0,
-            order: savedOrder,
-            product: product || undefined,
-            payment: savedPayment || undefined,
-            discount: submittedDiscount
-        } as DeepPartial<OrderDetailsEntity>);
-        const savedOrderDetails = await this.orderDetailsRepository.save(orderDetails);
-
-        const delivery = this.deliveryRepository.create({
-            address: customer.address || 'Default Address',
-            deliveryStatus: 'pending',
-            orderDetails: savedOrderDetails
-        } as DeepPartial<DeliveryEntity>);
-        await this.deliveryRepository.save(delivery);
-
-        // Notify Observers about order creation (Email Notification, Audit Logging, Realtime Logistics)
-        await this.orderSubject.notify('CREATED', {
-            orderId: savedOrder.id as number,
-            productName: product?.name || 'Petroleum Product',
-            quantity: savedOrder.quantity || 1,
-            totalAmount: sagaContext.totalAmount,
-            status: savedOrder.status || 'pending',
-            customerEmail: customer.email,
-            timestamp: new Date(),
+            discount: Number((order as any).discount) || 0,
+            deliveryAddress: (order as any).deliveryAddress || (order as any).address,
+            sourceType: order.sourceType,
         });
-
-        return savedOrder;
     }
     async getOrdersByCustomerId(customerId: string): Promise<OrderEntity[]> {
         return this.orderRepository.find({
