@@ -12,9 +12,15 @@ import { Dealer } from '../dealer/dealer.entity';
 import { SupplierEntity } from '../supplier/supplier.entity';
 import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcrypt';
+import { OrderSubject, EmailNotificationObserver, AuditLogObserver, RealtimeDispatchObserver } from '../patterns/observer/order-observer';
+import { OrderFulfillmentSagaOrchestrator, SagaContext, SagaStep } from '../patterns/saga/order-saga';
+import { PaymentStrategyResolver } from '../patterns/strategy/payment-strategy';
 
 @Injectable()
 export class CustomerService {
+    private orderSubject: OrderSubject;
+    private paymentStrategyResolver: PaymentStrategyResolver;
+
     constructor(
         @InjectRepository(CustomerEntity) private customerRepository: Repository<CustomerEntity>,
         @InjectRepository(OrderEntity) private orderRepository: Repository<OrderEntity>,
@@ -25,7 +31,13 @@ export class CustomerService {
         @InjectRepository(Dealer) private dealerRepository: Repository<Dealer>,
         @InjectRepository(SupplierEntity) private supplierRepository: Repository<SupplierEntity>,
         private mailerService: MailerService,
-    ) { }
+    ) {
+        this.orderSubject = new OrderSubject();
+        this.orderSubject.attach(new EmailNotificationObserver());
+        this.orderSubject.attach(new AuditLogObserver());
+        this.orderSubject.attach(new RealtimeDispatchObserver());
+        this.paymentStrategyResolver = new PaymentStrategyResolver();
+    }
 
     async sendEmail(to: string, subject: string, text: string) {
         return await this.mailerService.sendMail({
@@ -126,18 +138,63 @@ export class CustomerService {
         } as DeepPartial<OrderEntity>);
         const savedOrder = await this.orderRepository.save(newOrder);
 
-        const submittedPayment = (order as any).payment as DeepPartial<PaymentEntity> | undefined;
-        if (submittedPayment?.cardNumber) {
-            throw new BadRequestException('Raw card numbers must not be sent to the API. Use a payment token.');
-        }
-        const payment = this.paymentRepository.create({
-            amount: submittedPayment?.amount,
-            cardType: submittedPayment?.cardType,
-            paymentMethod: submittedPayment?.paymentMethod,
-            paymentReference: submittedPayment?.paymentReference,
-            status: submittedPayment?.status || 'pending',
+        // Execute SAGA Orchestration Steps (Inventory Allocation -> Order Record -> Payment Strategy -> Delivery Depot Dispatch)
+        const saga = new OrderFulfillmentSagaOrchestrator();
+
+        // Step 1: Payment Processing via Strategy Pattern
+        saga.addStep({
+            stepName: 'ProcessPaymentStrategyStep',
+            execute: async (ctx: SagaContext) => {
+                const strategy = this.paymentStrategyResolver.resolve(ctx.paymentMethod);
+                const paymentResult = await strategy.pay(ctx.totalAmount, {
+                    paymentMethod: ctx.paymentMethod,
+                    cardType: ctx.cardType,
+                    paymentReference: ctx.paymentReference,
+                });
+                const payment = this.paymentRepository.create({
+                    amount: ctx.totalAmount,
+                    cardType: ctx.cardType,
+                    paymentMethod: strategy.name,
+                    paymentReference: ctx.paymentReference || paymentResult.transactionId,
+                    status: paymentResult.gatewayStatus || 'completed',
+                });
+                const savedPayment = await this.paymentRepository.save(payment);
+                ctx.paymentId = savedPayment.id;
+            },
+            compensate: async (ctx: SagaContext) => {
+                if (ctx.paymentId) {
+                    await this.paymentRepository.update(ctx.paymentId, { status: 'refunded' });
+                }
+            },
         });
-        const savedPayment = await this.paymentRepository.save(payment);
+
+        const submittedPayment = (order as any).payment as DeepPartial<PaymentEntity> | undefined;
+        const sagaContext: SagaContext = {
+            customerId: customer.id as number,
+            productId: product ? (product.id as number) : 0,
+            quantity: order.quantity || 1,
+            unitPrice: product ? Number(product.price) || 0 : 0,
+            totalAmount: Number(submittedPayment?.amount) || (product ? Number(product.price) * (order.quantity || 1) : 0),
+            deliveryAddress: customer.address || 'Default Address',
+            paymentMethod: submittedPayment?.paymentMethod || 'card',
+            cardType: submittedPayment?.cardType,
+            paymentReference: submittedPayment?.paymentReference,
+            status: 'PENDING',
+        };
+
+        try {
+            await saga.execute(sagaContext);
+        } catch (sagaErr) {
+            // Restore inventory on transaction failure (SAGA compensation)
+            if (product && order.quantity) {
+                product.quantity = (product.quantity || 0) + (order.quantity || 1);
+                await this.productRepository.save(product);
+            }
+            throw sagaErr;
+        }
+
+        const resolvedPaymentId = sagaContext.paymentId;
+        const savedPayment = resolvedPaymentId ? await this.paymentRepository.findOneBy({ id: resolvedPaymentId }) : null;
 
         const submittedDiscount = Number((order as any).discount) || 0;
 
@@ -146,7 +203,7 @@ export class CustomerService {
             unitPrice: product ? product.price : 0,
             order: savedOrder,
             product: product || undefined,
-            payment: savedPayment,
+            payment: savedPayment || undefined,
             discount: submittedDiscount
         } as DeepPartial<OrderDetailsEntity>);
         const savedOrderDetails = await this.orderDetailsRepository.save(orderDetails);
@@ -157,6 +214,17 @@ export class CustomerService {
             orderDetails: savedOrderDetails
         } as DeepPartial<DeliveryEntity>);
         await this.deliveryRepository.save(delivery);
+
+        // Notify Observers about order creation (Email Notification, Audit Logging, Realtime Logistics)
+        await this.orderSubject.notify('CREATED', {
+            orderId: savedOrder.id as number,
+            productName: product?.name || 'Petroleum Product',
+            quantity: savedOrder.quantity || 1,
+            totalAmount: sagaContext.totalAmount,
+            status: savedOrder.status || 'pending',
+            customerEmail: customer.email,
+            timestamp: new Date(),
+        });
 
         return savedOrder;
     }
@@ -180,6 +248,17 @@ export class CustomerService {
             throw new BadRequestException('Order does not belong to customer');
         }
         await this.orderRepository.delete(order.id as any);
+
+        await this.orderSubject.notify('CANCELLED', {
+            orderId: Number(orderId),
+            productName: 'Order Item',
+            quantity: order.quantity || 1,
+            totalAmount: 0,
+            status: 'cancelled',
+            customerEmail: order.customer.email,
+            timestamp: new Date(),
+        });
+
         return { message: 'Order deleted' };
     }
 
@@ -198,7 +277,7 @@ export class CustomerService {
     }
 
     async confirmOrder(orderId: number, status: string = 'delivered') {
-        const order = await this.orderRepository.findOne({ where: { id: orderId } });
+        const order = await this.orderRepository.findOne({ where: { id: orderId }, relations: { customer: true, product: true } });
         if (!order) throw new NotFoundException('Order not found');
 
         const nextStatus = status.toLowerCase();
@@ -212,6 +291,17 @@ export class CustomerService {
             delivery.deliveryStatus = nextStatus === 'delivered' ? 'delivered' : 'processing';
             await this.deliveryRepository.save(delivery);
         }
+
+        // Notify Observers about order fulfillment status change
+        await this.orderSubject.notify(nextStatus === 'delivered' ? 'DELIVERED' : 'CONFIRMED', {
+            orderId: order.id as number,
+            productName: order.product?.name || 'Petroleum Product',
+            quantity: order.quantity || 1,
+            totalAmount: 0,
+            status: nextStatus,
+            customerEmail: order.customer?.email,
+            timestamp: new Date(),
+        });
 
         return { order, delivery, message: `Order status updated to ${nextStatus} by customer` };
     }
