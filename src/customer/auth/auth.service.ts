@@ -54,7 +54,7 @@ export class AuthService {
         const tokenPayload = `${user.email}:${expiryTimestamp}:${hmacSignature}`;
         const resetToken = Buffer.from(tokenPayload).toString('base64');
 
-        const emailBody = `Hello ${user.username || user.name || 'Valued Customer'},
+        const emailBody = `Hello ${user.username || 'Valued Customer'},
 
 Your verification OTP for password reset is: ${otp}
 
