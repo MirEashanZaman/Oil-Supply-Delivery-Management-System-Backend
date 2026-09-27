@@ -34,3 +34,12 @@
 - **Decision**: Implement `ObservabilityMiddleware` injecting correlation IDs (`X-Trace-Id`) and collecting memory/response time metrics.
 - **Consequences**:
   - *Positive*: Deep system diagnostics and rapid root-cause analysis.
+
+---
+
+## ADR-005: Stateless Cryptographic HMAC-SHA256 Password Reset Engine
+- **Status**: Accepted
+- **Context**: PRD Feature 1 (Auth & Forgot Password) requires users to verify their identity via email OTP without incurring high database load, table pollution, or orphan cache records.
+- **Decision**: Implement an HMAC-SHA256 signed stateless token (`generateStatelessOtp` & `resetPasswordWithStatelessOtp`) combining email, OTP, and timestamp with the user's password hash as the secret.
+- **Consequences**:
+  - *Positive*: Zero database storage for OTPs, mathematical 5-minute auto-expiry enforcement, automatic invalidation upon password update.
