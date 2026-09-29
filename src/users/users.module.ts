@@ -6,6 +6,7 @@ import { CustomerEntity } from '../customer/customer.entity';
 import { AdminEntity } from '../admin/admin.entity';
 import { Dealer } from '../dealer/dealer.entity';
 import { SupplierEntity } from '../supplier/supplier.entity';
+import { DeliverymanEntity } from '../deliveryman/deliveryman.entity';
 
 @Module({
     imports: [
@@ -14,6 +15,7 @@ import { SupplierEntity } from '../supplier/supplier.entity';
             AdminEntity,
             Dealer,
             SupplierEntity,
+            DeliverymanEntity,
         ]),
     ],
     controllers: [UsersController],
