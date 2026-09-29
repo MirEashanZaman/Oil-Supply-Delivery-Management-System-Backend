@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { Dealer } from './dealer.entity';
@@ -186,12 +186,12 @@ export class DealerService {
 
     const supplierLocations: PartnerLocation[] = suppliers.map((s) => ({
       id: s.id,
-      name: s.userName || s.name || `Refinery Supplier #${s.id}`,
+      name: s.userName || `Refinery Supplier #${s.id}`,
       role: 'Supplier' as const,
       email: s.email,
-      phone: s.phoneNumber || s.phone,
+      phone: s.phoneNumber,
       address: s.address || 'Central Refinery Terminal',
-      coordinates: GeoProximityService.geocodeAddress(s.address || s.name),
+      coordinates: GeoProximityService.geocodeAddress(s.address || s.userName),
     }));
 
     const nearby = GeoProximityService.findNearbyPartners(dealerCoords, supplierLocations, radiusKm);

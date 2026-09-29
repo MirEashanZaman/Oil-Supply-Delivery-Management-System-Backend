@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Patch, Param, Delete, UsePipes, ValidationPipe, UseGuards, Req, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Patch, Param, Delete, Query, UsePipes, ValidationPipe, UseGuards, Req, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { AuthGuard } from './auth/auth.guard';
 import { DealerService } from './dealer.service';
 import { Dealer } from './dealer.entity';

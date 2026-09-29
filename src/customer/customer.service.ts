@@ -251,21 +251,21 @@ export class CustomerService {
         const partnerLocations: PartnerLocation[] = [
             ...suppliers.map((s) => ({
                 id: s.id,
-                name: s.userName || s.name || `Supplier #${s.id}`,
+                name: s.userName || `Supplier #${s.id}`,
                 role: 'Supplier' as const,
                 email: s.email,
-                phone: s.phoneNumber || s.phone,
+                phone: s.phoneNumber,
                 address: s.address || 'Central Petroleum Terminal',
-                coordinates: GeoProximityService.geocodeAddress(s.address || s.name),
+                coordinates: GeoProximityService.geocodeAddress(s.address || s.userName),
             })),
             ...dealers.map((d) => ({
                 id: d.id,
-                name: d.userName || d.name || `Dealer #${d.id}`,
+                name: d.userName || `Dealer #${d.id}`,
                 role: 'Dealer' as const,
                 email: d.email,
-                phone: d.phoneNumber || d.phone,
+                phone: d.phoneNumber,
                 address: d.address || 'Regional Fuel Depot',
-                coordinates: GeoProximityService.geocodeAddress(d.address || d.name),
+                coordinates: GeoProximityService.geocodeAddress(d.address || d.userName),
             })),
         ];
 
