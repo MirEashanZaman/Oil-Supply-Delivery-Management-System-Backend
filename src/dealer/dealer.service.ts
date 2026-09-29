@@ -144,20 +144,25 @@ export class DealerService {
   }
 
   async confirmOrder(orderId: number, status: string = 'confirmed') {
+    const normalized = (status || 'confirmed').trim().toLowerCase();
+    if (normalized === 'delivered') {
+      throw new BadRequestException('Dealers cannot mark orders as delivered. Only delivery personnel can complete deliveries.');
+    }
+
     const order = await this.orderRepository.findOne({ where: { id: orderId } });
     if (!order) throw new NotFoundException('Order not found');
-    order.status = status;
+    order.status = normalized;
     await this.orderRepository.save(order);
 
     const delivery = await this.deliveryRepository.findOne({
       where: { orderDetails: { order: { id: orderId } } }
     });
     if (delivery) {
-      delivery.deliveryStatus = status === 'accepted' || status === 'confirmed' ? 'processing' : 'rejected';
+      delivery.deliveryStatus = normalized === 'accepted' || normalized === 'confirmed' ? 'processing' : 'rejected';
       await this.deliveryRepository.save(delivery);
     }
 
-    return { order, delivery, message: `Order status updated to ${status} by dealer` };
+    return { order, delivery, message: `Order status updated to ${normalized} by dealer` };
   }
 
   async scheduleDelivery(orderId: number, deliveryDate: string) {
