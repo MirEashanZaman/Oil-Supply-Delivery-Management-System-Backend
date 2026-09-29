@@ -5,6 +5,7 @@ import { CustomerEntity } from '../customer/customer.entity';
 import { AdminEntity } from '../admin/admin.entity';
 import { Dealer } from '../dealer/dealer.entity';
 import { SupplierEntity } from '../supplier/supplier.entity';
+import { DeliverymanEntity } from '../deliveryman/deliveryman.entity';
 
 @Injectable()
 export class UsersService {
@@ -17,6 +18,8 @@ export class UsersService {
         private dealerRepo: Repository<Dealer>,
         @InjectRepository(SupplierEntity)
         private supplierRepo: Repository<SupplierEntity>,
+        @InjectRepository(DeliverymanEntity)
+        private deliverymanRepo: Repository<DeliverymanEntity>,
     ) { }
 
     async getAllUsers() {
@@ -24,12 +27,14 @@ export class UsersService {
         const admins = await this.adminRepo.find();
         const dealers = await this.dealerRepo.find();
         const suppliers = await this.supplierRepo.find();
+        const deliverymen = await this.deliverymanRepo.find();
 
         return {
             customers: customers,
             admins: admins,
             dealers: dealers,
             suppliers: suppliers,
+            deliverymen: deliverymen,
         };
     }
 
@@ -52,6 +57,11 @@ export class UsersService {
         const supplier = await this.supplierRepo.findOneBy({ email });
         if (supplier) {
             return { user: supplier, role: 'supplier' };
+        }
+
+        const deliveryman = await this.deliverymanRepo.findOneBy({ email });
+        if (deliveryman) {
+            return { user: deliveryman, role: 'deliveryman' };
         }
 
         return { message: 'User not found' };
