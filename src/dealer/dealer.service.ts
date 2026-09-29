@@ -8,6 +8,7 @@ import { Product } from '../product/product.entity';
 import { OrderEntity } from '../order/order.entity';
 import { SupplierEntity } from '../supplier/supplier.entity';
 import { DeliveryEntity } from '../delivery/delivery.entity';
+import { GeoProximityService, PartnerLocation } from '../patterns/geo/geo-proximity.service';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -172,5 +173,32 @@ export class DealerService {
     }
 
     return { orderId, deliveryDate, delivery, message: "Delivery successfully scheduled by dealer" };
+  }
+
+  async findNearbySuppliers(address?: string, radiusKm: number = 60) {
+    const dealerCoords = GeoProximityService.geocodeAddress(address);
+    const suppliers = await this.supplierRepository.find();
+
+    const supplierLocations: PartnerLocation[] = suppliers.map((s) => ({
+      id: s.id,
+      name: s.userName || s.name || `Refinery Supplier #${s.id}`,
+      role: 'Supplier' as const,
+      email: s.email,
+      phone: s.phoneNumber || s.phone,
+      address: s.address || 'Central Refinery Terminal',
+      coordinates: GeoProximityService.geocodeAddress(s.address || s.name),
+    }));
+
+    const nearby = GeoProximityService.findNearbyPartners(dealerCoords, supplierLocations, radiusKm);
+
+    return {
+      dealerLocation: {
+        address: address || 'Current Dealer Depot',
+        coordinates: dealerCoords,
+      },
+      radiusKm,
+      totalFound: nearby.length,
+      nearbySuppliers: nearby,
+    };
   }
 }
