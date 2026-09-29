@@ -4,6 +4,7 @@ import { Product } from "../product/product.entity";
 import { CustomerEntity } from "../customer/customer.entity";
 import { Dealer } from "../dealer/dealer.entity";
 import { SupplierEntity } from "../supplier/supplier.entity";
+import { DeliverymanEntity } from "../deliveryman/deliveryman.entity";
 
 @Entity("admin")
 export class AdminEntity {
@@ -48,6 +49,9 @@ export class AdminEntity {
 
     @OneToMany(() => SupplierEntity, supplier => supplier.admin)
     suppliers?: SupplierEntity[];
+
+    @OneToMany(() => DeliverymanEntity, deliveryman => deliveryman.admin)
+    deliverymen?: DeliverymanEntity[];
 
     @BeforeInsert()
     generateAdminId() {
