@@ -15,6 +15,7 @@ import * as bcrypt from 'bcrypt';
 import { OrderSubject, EmailNotificationObserver, AuditLogObserver, RealtimeDispatchObserver } from '../patterns/observer/order-observer';
 import { OrderFulfillmentSagaOrchestrator, SagaContext, SagaStep } from '../patterns/saga/order-saga';
 import { PaymentStrategyResolver } from '../patterns/strategy/payment-strategy';
+import { GeoProximityService, PartnerLocation } from '../patterns/geo/geo-proximity.service';
 
 import { OrderFulfillmentFacade } from '../patterns/facade/order-fulfillment.facade';
 
@@ -237,5 +238,47 @@ export class CustomerService {
         }
         await this.customerRepository.update(id, updateData);
         return this.customerRepository.findOneBy({ id });
+    }
+
+    async findNearbySuppliersAndDealers(address?: string, radiusKm: number = 50) {
+        const customerCoords = GeoProximityService.geocodeAddress(address);
+
+        const [suppliers, dealers] = await Promise.all([
+            this.supplierRepository.find(),
+            this.dealerRepository.find(),
+        ]);
+
+        const partnerLocations: PartnerLocation[] = [
+            ...suppliers.map((s) => ({
+                id: s.id,
+                name: s.userName || s.name || `Supplier #${s.id}`,
+                role: 'Supplier' as const,
+                email: s.email,
+                phone: s.phoneNumber || s.phone,
+                address: s.address || 'Central Petroleum Terminal',
+                coordinates: GeoProximityService.geocodeAddress(s.address || s.name),
+            })),
+            ...dealers.map((d) => ({
+                id: d.id,
+                name: d.userName || d.name || `Dealer #${d.id}`,
+                role: 'Dealer' as const,
+                email: d.email,
+                phone: d.phoneNumber || d.phone,
+                address: d.address || 'Regional Fuel Depot',
+                coordinates: GeoProximityService.geocodeAddress(d.address || d.name),
+            })),
+        ];
+
+        const nearby = GeoProximityService.findNearbyPartners(customerCoords, partnerLocations, radiusKm);
+
+        return {
+            customerLocation: {
+                address: address || 'Current Customer Location',
+                coordinates: customerCoords,
+            },
+            radiusKm,
+            totalFound: nearby.length,
+            nearbyPartners: nearby,
+        };
     }
 }
