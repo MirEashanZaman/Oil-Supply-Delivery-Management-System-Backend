@@ -16,6 +16,8 @@ import { ProductModule } from './product/product.module';
 import { PaymentModule } from './payment/payment.module';
 import { DeliveryModule } from './delivery/delivery.module';
 import { ReviewModule } from './review/review.module';
+import { DeliverymanModule } from './deliveryman/deliveryman.module';
+import { DeliverymanAuthModule } from './deliveryman/auth/auth.module';
 
 @Module({
   imports: [
@@ -27,6 +29,7 @@ import { ReviewModule } from './review/review.module';
     ProductModule,
     PaymentModule,
     DeliveryModule,
+    DeliverymanModule,
     ReviewModule,
     TypeOrmModule.forRoot(
       process.env.DATABASE_URL
@@ -53,6 +56,7 @@ import { ReviewModule } from './review/review.module';
     AdminAuthModule,
     DealerAuthModule,
     SupplierAuthModule,
+    DeliverymanAuthModule,
     UsersModule,
   ],
 
