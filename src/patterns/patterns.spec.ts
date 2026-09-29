@@ -321,5 +321,32 @@ describe('Enterprise Software Architecture & Design Patterns Suite', () => {
       expect(nearby[0].distanceKm).toBeLessThan(nearby[1].distanceKm!);
       expect(nearby[0].estimatedTransitMinutes).toBeDefined();
     });
+
+    it('should detect and rank nearby refinery suppliers for wholesale dealer procurement', () => {
+      const dealerDepot = { latitude: 23.8214, longitude: 90.4273 };
+      const suppliers: PartnerLocation[] = [
+        {
+          id: 1,
+          name: 'Ashuganj Energy Port Supplier',
+          role: 'Supplier',
+          email: 'ashuganj@refinery.com',
+          address: 'Ashuganj Port',
+          coordinates: { latitude: 24.0321, longitude: 91.0021 },
+        },
+        {
+          id: 2,
+          name: 'Kuratoli Central Supplier',
+          role: 'Supplier',
+          email: 'kuratoli@refinery.com',
+          address: 'Kuratoli, Dhaka',
+          coordinates: { latitude: 23.8210, longitude: 90.4270 },
+        },
+      ];
+
+      const nearbySuppliers = GeoProximityService.findNearbyPartners(dealerDepot, suppliers, 100);
+      expect(nearbySuppliers.length).toBe(2);
+      expect(nearbySuppliers[0].name).toBe('Kuratoli Central Supplier');
+      expect(nearbySuppliers[0].distanceKm).toBeLessThan(1);
+    });
   });
 });
