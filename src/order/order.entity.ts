@@ -3,6 +3,7 @@ import { CustomerEntity } from "../customer/customer.entity";
 import { Product } from "../product/product.entity";
 import { Dealer } from "../dealer/dealer.entity";
 import { SupplierEntity } from "../supplier/supplier.entity";
+import { DeliverymanEntity } from "../deliveryman/deliveryman.entity";
 import { randomUUID } from 'crypto';
 
 @Entity()
@@ -23,6 +24,9 @@ export class OrderEntity {
     @Column({ nullable: true })
     dealerId?: number;
 
+    @Column({ nullable: true })
+    deliverymanId?: number;
+
     @ManyToOne(() => CustomerEntity, customer => customer.orders, { onDelete: 'CASCADE' })
     customer?: CustomerEntity;
     @ManyToOne(() => Product, { onDelete: 'CASCADE', nullable: true })
@@ -33,6 +37,9 @@ export class OrderEntity {
 
     @ManyToOne(() => SupplierEntity, supplier => supplier.orders, { nullable: true, onDelete: 'CASCADE' })
     supplier?: SupplierEntity;
+
+    @ManyToOne(() => DeliverymanEntity, { nullable: true, onDelete: 'SET NULL' })
+    deliveryman?: DeliverymanEntity;
 
     @Column({ default: 'pending' })
     status?: string;
