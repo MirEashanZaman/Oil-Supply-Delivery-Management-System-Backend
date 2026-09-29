@@ -6,10 +6,12 @@ import { AdminDTO } from "./admin.dto";
 import { CustomerEntity } from "../customer/customer.entity";
 import { Dealer } from "../dealer/dealer.entity";
 import { SupplierEntity } from "../supplier/supplier.entity";
+import { DeliverymanEntity } from "../deliveryman/deliveryman.entity";
 import { OrderEntity } from "../order/order.entity";
 import { CustomerDTO } from "../customer/customer.dto";
 import { DealerDTO } from "../dealer/dealer.dto";
 import { SupplierDTO } from "../supplier/supplier.dto";
+import { DeliverymanDTO } from "../deliveryman/deliveryman.dto";
 import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcrypt';
 
@@ -25,6 +27,8 @@ export class AdminService {
         private dealerRepo: Repository<Dealer>,
         @InjectRepository(SupplierEntity)
         private supplierRepo: Repository<SupplierEntity>,
+        @InjectRepository(DeliverymanEntity)
+        private deliverymanRepo: Repository<DeliverymanEntity>,
         @InjectRepository(OrderEntity)
         private orderRepo: Repository<OrderEntity>,
         private mailerService: MailerService,
@@ -48,7 +52,8 @@ export class AdminService {
         const customers = await this.customerRepo.find();
         const dealers = await this.dealerRepo.find();
         const suppliers = await this.supplierRepo.find();
-        return [...admins, ...customers, ...dealers, ...suppliers];
+        const deliverymen = await this.deliverymanRepo.find();
+        return [...admins, ...customers, ...dealers, ...suppliers, ...deliverymen];
     }
 
 
@@ -96,7 +101,12 @@ export class AdminService {
             .where("CAST(supplier.joiningDate AS DATE) = :date", { date })
             .getMany();
 
-        return [...admins, ...customers, ...dealers, ...suppliers];
+        const deliverymen = await this.deliverymanRepo
+            .createQueryBuilder("deliveryman")
+            .where("CAST(deliveryman.joiningDate AS DATE) = :date", { date })
+            .getMany();
+
+        return [...admins, ...customers, ...dealers, ...suppliers, ...deliverymen];
     }
 
     async findByEmail(email: string): Promise<AdminEntity | null> {
@@ -240,6 +250,56 @@ export class AdminService {
 
     async adminDeleteSupplier(id: number): Promise<void> {
         await this.supplierRepo.delete(id);
+    }
+
+    // Deliveryman CRUD & Approval
+    async adminCreateDeliveryman(data: DeliverymanDTO): Promise<DeliverymanEntity> {
+        const existing = await this.deliverymanRepo.findOneBy({ email: data.email as string });
+        if (existing) {
+            throw new HttpException('Deliveryman already exists', HttpStatus.CONFLICT);
+        }
+        const hashedPassword = data.password ? await bcrypt.hash(data.password, 10) : undefined;
+        const deliveryman = this.deliverymanRepo.create({
+            ...data,
+            password: hashedPassword,
+            title: 'Deliveryman',
+            status: 'active', // Admin created deliverymen are active immediately
+        });
+        return this.deliverymanRepo.save(deliveryman);
+    }
+
+    async adminUpdateDeliveryman(id: number, data: Partial<DeliverymanDTO>): Promise<DeliverymanEntity | null> {
+        const deliveryman = await this.deliverymanRepo.findOneBy({ id });
+        if (!deliveryman) {
+            throw new NotFoundException('Deliveryman not found');
+        }
+        if (data.password) {
+            data.password = await bcrypt.hash(data.password, 10);
+        }
+        await this.deliverymanRepo.update(id, data as any);
+        return this.deliverymanRepo.findOneBy({ id });
+    }
+
+    async adminApproveDeliveryman(id: number): Promise<DeliverymanEntity | null> {
+        const deliveryman = await this.deliverymanRepo.findOneBy({ id });
+        if (!deliveryman) {
+            throw new NotFoundException('Deliveryman not found');
+        }
+        deliveryman.status = 'active';
+        await this.deliverymanRepo.save(deliveryman);
+
+        if (deliveryman.email) {
+            await this.sendEmail(
+                deliveryman.email,
+                'Delivery Personnel Account Approved!',
+                `Dear ${deliveryman.userName || 'Delivery Partner'},\n\nYour delivery personnel registration has been officially approved by our administration! You can now log into your delivery portal to accept nearby orders.\n\nBest regards,\nOil Supply & Delivery Team`
+            );
+        }
+        return deliveryman;
+    }
+
+    async adminDeleteDeliveryman(id: number): Promise<void> {
+        await this.deliverymanRepo.delete(id);
     }
 
     // Order CRUD (Update and Delete only, no creation)
