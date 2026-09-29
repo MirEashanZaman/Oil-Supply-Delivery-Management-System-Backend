@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Patch, Delete, Query, UsePipes, ValidationPipe, UseGuards, Req, UseInterceptors, UploadedFile } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Put, Patch, Delete, Query, UsePipes, ValidationPipe, UseGuards, Req, UseInterceptors, UploadedFile } from "@nestjs/common";
 import { AuthGuard } from './auth/auth.guard';
 import { AdminService } from "./admin.service";
 import { AdminDTO } from "./admin.dto";
@@ -6,6 +6,7 @@ import { AdminEntity } from "./admin.entity";
 import { CustomerDTO } from "../customer/customer.dto";
 import { DealerDTO } from "../dealer/dealer.dto";
 import { SupplierDTO } from "../supplier/supplier.dto";
+import { DeliverymanDTO } from "../deliveryman/deliveryman.dto";
 import { OrderEntity } from "../order/order.entity";
 import { Request } from "express";
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -160,6 +161,28 @@ export class AdminController {
     @Delete('supplier/:id')
     deleteSupplier(@Param('id') id: string) {
         return this.adminService.adminDeleteSupplier(Number(id));
+    }
+
+    // Manage Deliverymen
+    @Post('deliveryman')
+    @UsePipes(new ValidationPipe())
+    createDeliveryman(@Body() data: DeliverymanDTO) {
+        return this.adminService.adminCreateDeliveryman(data);
+    }
+
+    @Patch('deliveryman/:id')
+    updateDeliveryman(@Param('id') id: string, @Body() data: Partial<DeliverymanDTO>) {
+        return this.adminService.adminUpdateDeliveryman(Number(id), data);
+    }
+
+    @Put('deliveryman/:id/approve')
+    approveDeliveryman(@Param('id') id: string) {
+        return this.adminService.adminApproveDeliveryman(Number(id));
+    }
+
+    @Delete('deliveryman/:id')
+    deleteDeliveryman(@Param('id') id: string) {
+        return this.adminService.adminDeleteDeliveryman(Number(id));
     }
 
     // Manage Orders (Update & Delete only)
