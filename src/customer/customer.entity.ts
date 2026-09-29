@@ -30,6 +30,18 @@ export class CustomerEntity {
     @Column({ nullable: true })
     title?: string;
 
+    @Column({ nullable: true, default: 'Industrial Manufacturing & Commercial Fleet' })
+    businessType?: string;
+
+    @Column({ nullable: true, default: 'BIN-100293847-01' })
+    taxBinNumber?: string;
+
+    @Column({ type: 'int', nullable: true, default: 35000 })
+    onsiteTankCapacityLiters?: number;
+
+    @Column({ nullable: true, default: 'Receiving Depot Supervisor' })
+    emergencyContact?: string;
+
     @CreateDateColumn({ type: 'timestamp', nullable: true })
     joiningDate?: Date;
 

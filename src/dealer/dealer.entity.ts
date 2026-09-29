@@ -34,6 +34,18 @@ export class Dealer {
     @Column({ nullable: true })
     title?: string;
 
+    @Column({ nullable: true, default: 'DLR-STATION-4491' })
+    stationLicenseNumber?: string;
+
+    @Column({ type: 'int', nullable: true, default: 80000 })
+    undergroundTankCapacity?: number;
+
+    @Column({ type: 'int', nullable: true, default: 12 })
+    nozzlesCount?: number;
+
+    @Column({ type: 'double precision', nullable: true, default: 250000.0 })
+    creditLimit?: number;
+
     @CreateDateColumn({ type: 'timestamp', nullable: true })
     joiningDate?: Date;
 

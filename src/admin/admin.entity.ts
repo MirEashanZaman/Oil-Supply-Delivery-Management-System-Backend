@@ -35,6 +35,15 @@ export class AdminEntity {
     @Column({ nullable: true })
     title?: string;
 
+    @Column({ nullable: true, default: 'Super Administrator & Governance Officer' })
+    adminTier?: string;
+
+    @Column({ type: 'boolean', nullable: true, default: true })
+    twoFactorAuthEnabled?: boolean;
+
+    @Column({ type: 'timestamp', nullable: true })
+    lastSecurityAuditDate?: Date;
+
     @CreateDateColumn({ type: 'timestamp', nullable: true })
     joiningDate?: Date;
 

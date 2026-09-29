@@ -36,6 +36,18 @@ export class SupplierEntity {
     @Column({ nullable: true })
     title?: string;
 
+    @Column({ nullable: true, default: 'BPC-REF-88390' })
+    refineryLicenseNumber?: string;
+
+    @Column({ type: 'int', nullable: true, default: 5000000 })
+    storageCapacityLiters?: number;
+
+    @Column({ nullable: true, default: 'Chittagong Coastal Berth #4' })
+    berthPortLocation?: string;
+
+    @Column({ nullable: true, default: 'ISO 9001:2015 & ASTM-D Verified' })
+    isoCertification?: string;
+
     @CreateDateColumn({ type: 'timestamp', nullable: true })
     joiningDate?: Date;
 
