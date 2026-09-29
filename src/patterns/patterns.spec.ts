@@ -8,6 +8,7 @@ import { CacheAsideManager, MemoryCacheStore } from './caching/cache-aside.manag
 import { OrderSubject, OrderObserver } from './observer/order-observer';
 import { IoTMessageBroker, TelemetryPayload } from './iot/iot-pubsub.broker';
 import { PetroleumRAGPipeline } from './ai/rag-agent.pipeline';
+import { GeoProximityService, PartnerLocation } from './geo/geo-proximity.service';
 
 describe('Enterprise Software Architecture & Design Patterns Suite', () => {
   describe('SAGA Pattern Orchestrator', () => {
@@ -273,6 +274,52 @@ describe('Enterprise Software Architecture & Design Patterns Suite', () => {
       const response = await ragAgent.runAgenticInference('What is the flash point of diesel?');
       expect(response.answer).toBeDefined();
       expect(response.retrievedDocs.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Geo-Proximity Supplier & Dealer Detection Algorithm', () => {
+    it('should accurately calculate Haversine distance between two coordinates', () => {
+      const customer = { latitude: 23.8103, longitude: 90.4125 };
+      const supplier = { latitude: 23.8214, longitude: 90.4273 };
+      const distance = GeoProximityService.calculateHaversineDistanceKm(customer, supplier);
+      expect(distance).toBeGreaterThan(0);
+      expect(distance).toBeLessThan(5);
+    });
+
+    it('should find and sort nearby suppliers and dealers within radius in ascending distance', () => {
+      const customer = { latitude: 23.8103, longitude: 90.4125 };
+      const partners: PartnerLocation[] = [
+        {
+          id: 1,
+          name: 'Chittagong Deep-Sea Depot',
+          role: 'Supplier',
+          email: 'ctg@refinery.com',
+          address: 'Chittagong Port',
+          coordinates: { latitude: 22.3569, longitude: 91.7832 },
+        },
+        {
+          id: 2,
+          name: 'Kuratoli Regional Dealer',
+          role: 'Dealer',
+          email: 'dealer@dhaka.com',
+          address: 'Kuratoli, Dhaka',
+          coordinates: { latitude: 23.8214, longitude: 90.4273 },
+        },
+        {
+          id: 3,
+          name: 'Gulshan Distribution Hub',
+          role: 'Dealer',
+          email: 'gulshan@hub.com',
+          address: 'Gulshan 2, Dhaka',
+          coordinates: { latitude: 23.7925, longitude: 90.4078 },
+        },
+      ];
+
+      const nearby = GeoProximityService.findNearbyPartners(customer, partners, 50);
+      expect(nearby.length).toBe(2);
+      expect(nearby[0].name).toBe('Kuratoli Regional Dealer');
+      expect(nearby[0].distanceKm).toBeLessThan(nearby[1].distanceKm!);
+      expect(nearby[0].estimatedTransitMinutes).toBeDefined();
     });
   });
 });
