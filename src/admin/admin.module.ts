@@ -7,11 +7,12 @@ import { AdminEntity } from './admin.entity';
 import { CustomerEntity } from '../customer/customer.entity';
 import { Dealer } from '../dealer/dealer.entity';
 import { SupplierEntity } from '../supplier/supplier.entity';
+import { DeliverymanEntity } from '../deliveryman/deliveryman.entity';
 import { OrderEntity } from '../order/order.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([AdminEntity, CustomerEntity, Dealer, SupplierEntity, OrderEntity]),
+        TypeOrmModule.forFeature([AdminEntity, CustomerEntity, Dealer, SupplierEntity, DeliverymanEntity, OrderEntity]),
         MailerModule.forRoot({
             transport: {
                 host: 'smtp.gmail.com',
