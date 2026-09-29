@@ -8,7 +8,7 @@ export class DeliverymanEntity {
     @PrimaryGeneratedColumn({ unsigned: true })
     id?: number;
 
-    @Column({ type: 'enum', enum: ['active', 'inactive'], default: 'active' })
+    @Column({ type: 'enum', enum: ['active', 'inactive', 'pending_approval'], default: 'pending_approval' })
     status?: string;
 
     @Column({ unique: true })
