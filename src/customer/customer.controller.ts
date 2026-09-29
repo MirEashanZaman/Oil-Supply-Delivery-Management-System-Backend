@@ -175,4 +175,13 @@ export class CustomerController {
     ) {
         return this.customerService.sendEmail(to, subject, text);
     }
+
+    @Get('partners/nearby')
+    async getNearbyPartners(
+        @Query('address') address?: string,
+        @Query('radius') radius?: string,
+    ) {
+        const radiusKm = radius ? Math.max(5, Number(radius)) : 50;
+        return this.customerService.findNearbySuppliersAndDealers(address, radiusKm);
+    }
 }
