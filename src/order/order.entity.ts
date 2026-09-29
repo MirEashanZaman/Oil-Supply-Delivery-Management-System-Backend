@@ -44,8 +44,22 @@ export class OrderEntity {
     @Column({ default: 'pending' })
     status?: string;
 
+    @Column({ nullable: true })
+    deliveryOtp?: string;
+
+    @Column({ nullable: true })
+    recipientSignature?: string;
+
+    @Column({ nullable: true })
+    meterReadingPhoto?: string;
+
+    @Column({ nullable: true, type: 'timestamp' })
+    deliveredAt?: Date;
+
     @BeforeInsert()
     generateOrderNumber(): void {
         this.orderNumber = randomUUID();
+        // Generate a 4-digit secure Delivery Confirmation PIN for customer
+        this.deliveryOtp = Math.floor(1000 + Math.random() * 9000).toString();
     }
 }

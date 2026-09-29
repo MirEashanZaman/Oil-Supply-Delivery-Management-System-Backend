@@ -35,6 +35,33 @@ export class DeliverymanEntity {
     @Column({ nullable: true, default: 'Deliveryman' })
     title?: string;
 
+    @Column({ nullable: true, default: 'Tanker Lorry (20,000L)' })
+    vehicleType?: string;
+
+    @Column({ nullable: true })
+    vehicleRegistrationNumber?: string;
+
+    @Column({ nullable: true })
+    drivingLicenseNumber?: string;
+
+    @Column({ nullable: true })
+    hazmatCertNumber?: string;
+
+    @Column({ type: 'double precision', nullable: true, default: 0 })
+    totalEarnings?: number;
+
+    @Column({ type: 'int', nullable: true, default: 0 })
+    completedDeliveriesCount?: number;
+
+    @Column({ type: 'double precision', nullable: true, default: 5.0 })
+    rating?: number;
+
+    @Column({ type: 'double precision', nullable: true })
+    currentLatitude?: number;
+
+    @Column({ type: 'double precision', nullable: true })
+    currentLongitude?: number;
+
     @CreateDateColumn({ type: 'timestamp', nullable: true })
     joiningDate?: Date;
 

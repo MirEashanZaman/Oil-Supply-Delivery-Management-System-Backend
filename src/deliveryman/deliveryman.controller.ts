@@ -45,6 +45,15 @@ export class DeliverymanController {
         return this.deliverymanService.getDeliverymanById(Number(id));
     }
 
+    @Put('location/ping')
+    updateLocation(
+        @Body('deliverymanId') deliverymanId: number,
+        @Body('latitude') latitude: number,
+        @Body('longitude') longitude: number,
+    ) {
+        return this.deliverymanService.updateLocation(Number(deliverymanId), Number(latitude), Number(longitude));
+    }
+
     @Put('orders/:orderId/accept')
     acceptOrder(
         @Param('orderId') orderId: string,
@@ -57,8 +66,15 @@ export class DeliverymanController {
     completeDelivery(
         @Param('orderId') orderId: string,
         @Body('deliverymanId') deliverymanId: number,
+        @Body('otp') otp?: string,
+        @Body('signature') signature?: string,
+        @Body('meterReadingPhoto') meterReadingPhoto?: string,
     ) {
-        return this.deliverymanService.completeDelivery(Number(orderId), Number(deliverymanId));
+        return this.deliverymanService.completeDelivery(Number(orderId), Number(deliverymanId), {
+            otp,
+            signature,
+            meterReadingPhoto,
+        });
     }
 
     @Patch(':id')

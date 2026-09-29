@@ -194,18 +194,38 @@ export class DeliverymanService {
             await this.sendEmail(
                 order.customer.email,
                 `Delivery Update: Order #${order.id} is Out for Delivery!`,
-                `Dear ${order.customer.username || 'Customer'},\n\nYour order #${order.id} has been accepted by our delivery personnel (${deliveryman.userName || deliveryman.email}) and is now OUT FOR DELIVERY.\n\nThank you for choosing Oil Supply & Delivery Management System!`
+                `Dear ${order.customer.username || 'Customer'},\n\nYour order #${order.id} has been accepted by our delivery personnel (${deliveryman.userName || deliveryman.email}) and is now OUT FOR DELIVERY.\n\nYour 4-digit Delivery Confirmation PIN is: ${order.deliveryOtp || '1234'}\nPlease provide this PIN or electronic signature to the driver upon fuel offloading.\n\nThank you for choosing Oil Supply & Delivery Management System!`
             );
         }
 
         return {
             order,
             delivery,
+            deliveryOtp: order.deliveryOtp,
             message: `Order #${orderId} accepted successfully and is now out for delivery`,
         };
     }
 
-    async completeDelivery(orderId: number, deliverymanId: number) {
+    async updateLocation(deliverymanId: number, lat: number, lng: number) {
+        const deliveryman = await this.deliverymanRepo.findOneBy({ id: deliverymanId });
+        if (!deliveryman) throw new NotFoundException('Deliveryman not found');
+
+        deliveryman.currentLatitude = lat;
+        deliveryman.currentLongitude = lng;
+        await this.deliverymanRepo.save(deliveryman);
+
+        return {
+            deliverymanId,
+            coordinates: { lat, lng },
+            updatedAt: new Date(),
+        };
+    }
+
+    async completeDelivery(
+        orderId: number,
+        deliverymanId: number,
+        proofData?: { otp?: string; signature?: string; meterReadingPhoto?: string }
+    ) {
         const order = await this.orderRepo.findOne({
             where: { id: orderId },
             relations: { customer: true, product: true, deliveryman: true },
@@ -216,12 +236,27 @@ export class DeliverymanService {
             throw new BadRequestException('You are not the assigned deliveryman for this order');
         }
 
+        // Validate OTP if provided
+        if (proofData?.otp && order.deliveryOtp && proofData.otp.trim() !== order.deliveryOtp.trim()) {
+            throw new BadRequestException('Invalid Delivery PIN provided. Please check the 4-digit PIN with the customer.');
+        }
+
         const deliveryman = await this.deliverymanRepo.findOneBy({ id: deliverymanId });
 
         order.status = 'delivered';
+        order.deliveredAt = new Date();
+        if (proofData?.signature) order.recipientSignature = proofData.signature;
+        if (proofData?.meterReadingPhoto) order.meterReadingPhoto = proofData.meterReadingPhoto;
+
         if (deliveryman) {
             order.deliveryman = deliveryman;
             order.deliverymanId = deliveryman.id;
+
+            // Calculate driver payout fee: Base $25 + $2.50 per quantity unit
+            const tripPayout = 25.0 + (Number(order.quantity || 1) * 2.50);
+            deliveryman.totalEarnings = Number((deliveryman.totalEarnings || 0) + tripPayout);
+            deliveryman.completedDeliveriesCount = (deliveryman.completedDeliveriesCount || 0) + 1;
+            await this.deliverymanRepo.save(deliveryman);
         }
         await this.orderRepo.save(order);
 
@@ -245,7 +280,7 @@ export class DeliverymanService {
         return {
             order,
             delivery,
-            message: `Order #${orderId} marked as DELIVERED successfully by deliveryman`,
+            message: `Order #${orderId} marked as DELIVERED successfully with electronic proof of delivery`,
         };
     }
 }

@@ -27,6 +27,22 @@ export class DeliverymanDTO {
     @IsString()
     address?: string;
 
+    @IsOptional()
+    @IsString()
+    vehicleType?: string;
+
+    @IsOptional()
+    @IsString()
+    vehicleRegistrationNumber?: string;
+
+    @IsOptional()
+    @IsString()
+    drivingLicenseNumber?: string;
+
+    @IsOptional()
+    @IsString()
+    hazmatCertNumber?: string;
+
     title?: string;
 }
 
