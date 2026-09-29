@@ -141,4 +141,13 @@ export class DealerController {
   scheduleDelivery(@Body('orderId') orderId: number, @Body('deliveryDate') deliveryDate: string) {
     return this.dealerService.scheduleDelivery(orderId, deliveryDate);
   }
+
+  @Get('suppliers/nearby')
+  async getNearbySuppliers(
+    @Query('address') address?: string,
+    @Query('radius') radius?: string,
+  ) {
+    const radiusKm = radius ? Math.max(5, Number(radius)) : 60;
+    return this.dealerService.findNearbySuppliers(address, radiusKm);
+  }
 }
