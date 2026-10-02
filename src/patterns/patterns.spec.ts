@@ -10,6 +10,7 @@ import { IoTMessageBroker, TelemetryPayload } from './iot/iot-pubsub.broker';
 import { PetroleumRAGPipeline } from './ai/rag-agent.pipeline';
 import { GeoProximityService, PartnerLocation } from './geo/geo-proximity.service';
 import { EnterpriseLoadBalancer } from './load-balancer/load-balancer';
+import { EnterpriseAuditTrailManager } from './audit/audit-trail.manager';
 
 describe('Enterprise Software Architecture & Design Patterns Suite', () => {
   describe('SAGA Pattern Orchestrator', () => {
@@ -399,4 +400,66 @@ describe('Enterprise Software Architecture & Design Patterns Suite', () => {
       expect(firstPick.id).toBe(secondPick.id);
     });
   });
+
+  describe('Enterprise Audit Trail & Cryptographic Chain Pattern', () => {
+    let auditManager: EnterpriseAuditTrailManager;
+
+    beforeEach(() => {
+      auditManager = EnterpriseAuditTrailManager.getInstance();
+      auditManager.clearAuditTrail();
+    });
+
+    it('should record tamper-evident cryptographic hash chain for compliance actions', () => {
+      const rec1 = auditManager.recordEvent({
+        action: 'ORDER_CREATED',
+        entity: 'Order',
+        entityId: 101,
+        actorId: 5,
+        actorRole: 'Customer',
+        payload: { fuelType: 'Diesel', quantity: 1000 },
+      });
+
+      const rec2 = auditManager.recordEvent({
+        action: 'EPOD_VERIFIED',
+        entity: 'Order',
+        entityId: 101,
+        actorId: 12,
+        actorRole: 'Deliveryman',
+        payload: { pinVerified: true, custodyTransferred: true },
+      });
+
+      expect(rec1.hash).toBeDefined();
+      expect(rec2.previousHash).toBe(rec1.hash);
+
+      const verification = auditManager.verifyChainIntegrity();
+      expect(verification.isValid).toBe(true);
+    });
+
+    it('should detect unauthorized tampering or mutation in the audit log chain', () => {
+      auditManager.recordEvent({
+        action: 'ORDER_CREATED',
+        entity: 'Order',
+        entityId: 201,
+        actorId: 2,
+        actorRole: 'Dealer',
+      });
+
+      const rec2 = auditManager.recordEvent({
+        action: 'PAYMENT_PROCESSED',
+        entity: 'Order',
+        entityId: 201,
+        actorId: 2,
+        actorRole: 'Dealer',
+      });
+
+      const trail = auditManager.getAuditTrail();
+      // Simulate illicit data manipulation
+      trail[0].payload = { maliciousInjection: true };
+
+      const verification = auditManager.verifyChainIntegrity();
+      expect(verification.isValid).toBe(false);
+      expect(verification.corruptedAtIndex).toBe(0);
+    });
+  });
 });
+
