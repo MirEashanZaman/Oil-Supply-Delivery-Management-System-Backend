@@ -9,6 +9,7 @@ import { OrderSubject, OrderObserver } from './observer/order-observer';
 import { IoTMessageBroker, TelemetryPayload } from './iot/iot-pubsub.broker';
 import { PetroleumRAGPipeline } from './ai/rag-agent.pipeline';
 import { GeoProximityService, PartnerLocation } from './geo/geo-proximity.service';
+import { EnterpriseLoadBalancer } from './load-balancer/load-balancer';
 
 describe('Enterprise Software Architecture & Design Patterns Suite', () => {
   describe('SAGA Pattern Orchestrator', () => {
@@ -347,6 +348,55 @@ describe('Enterprise Software Architecture & Design Patterns Suite', () => {
       expect(nearbySuppliers.length).toBe(2);
       expect(nearbySuppliers[0].name).toBe('Kuratoli Central Supplier');
       expect(nearbySuppliers[0].distanceKm).toBeLessThan(1);
+    });
+  });
+
+  describe('Enterprise Load Balancer Pattern', () => {
+    it('should balance requests evenly using Round Robin strategy', () => {
+      const balancer = new EnterpriseLoadBalancer('ROUND_ROBIN', [
+        { id: 'node-1', url: 'https://backend-1.oilsupply.internal', weight: 1, healthy: true, activeConnections: 5, latencyMs: 20 },
+        { id: 'node-2', url: 'https://backend-2.oilsupply.internal', weight: 1, healthy: true, activeConnections: 10, latencyMs: 30 },
+      ]);
+
+      const first = balancer.selectNode();
+      const second = balancer.selectNode();
+      const third = balancer.selectNode();
+
+      expect(first.id).toBe('node-1');
+      expect(second.id).toBe('node-2');
+      expect(third.id).toBe('node-1');
+    });
+
+    it('should route requests to the node with Least Connections', () => {
+      const balancer = new EnterpriseLoadBalancer('LEAST_CONNECTIONS', [
+        { id: 'node-busy', url: 'https://backend-busy.oilsupply.internal', weight: 1, healthy: true, activeConnections: 45, latencyMs: 40 },
+        { id: 'node-idle', url: 'https://backend-idle.oilsupply.internal', weight: 1, healthy: true, activeConnections: 2, latencyMs: 15 },
+      ]);
+
+      const selected = balancer.selectNode();
+      expect(selected.id).toBe('node-idle');
+    });
+
+    it('should dynamically exclude unhealthy nodes from pool', () => {
+      const balancer = new EnterpriseLoadBalancer('ROUND_ROBIN', [
+        { id: 'node-1', url: 'https://backend-1.oilsupply.internal', weight: 1, healthy: true, activeConnections: 0, latencyMs: 20 },
+        { id: 'node-2', url: 'https://backend-2.oilsupply.internal', weight: 1, healthy: true, activeConnections: 0, latencyMs: 20 },
+      ]);
+
+      balancer.setNodeHealth('node-1', false);
+      const selected = balancer.selectNode();
+      expect(selected.id).toBe('node-2');
+    });
+
+    it('should route same client IP deterministically using IP Hash', () => {
+      const balancer = new EnterpriseLoadBalancer('IP_HASH', [
+        { id: 'node-1', url: 'https://backend-1.oilsupply.internal', weight: 1, healthy: true, activeConnections: 0, latencyMs: 20 },
+        { id: 'node-2', url: 'https://backend-2.oilsupply.internal', weight: 1, healthy: true, activeConnections: 0, latencyMs: 20 },
+      ]);
+
+      const firstPick = balancer.selectNode('192.168.1.100');
+      const secondPick = balancer.selectNode('192.168.1.100');
+      expect(firstPick.id).toBe(secondPick.id);
     });
   });
 });
