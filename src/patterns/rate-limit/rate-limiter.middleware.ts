@@ -15,8 +15,8 @@ interface ClientBucket {
 @Injectable()
 export class RateLimiterMiddleware implements NestMiddleware {
   private static defaultWindowMs: number = 60 * 1000;
-  private static defaultMaxRequests: number = 120;
-  private static authMaxRequests: number = 25;
+  private static defaultMaxRequests: number = 30;
+  private static authMaxRequests: number = 3;
 
   private static buckets: Map<string, ClientBucket> = new Map();
 
