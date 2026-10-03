@@ -14,10 +14,9 @@ interface ClientBucket {
 
 @Injectable()
 export class RateLimiterMiddleware implements NestMiddleware {
-  // Configurable window and capacity
-  private static defaultWindowMs: number = 60 * 1000; // 1 minute
-  private static defaultMaxRequests: number = 120; // 120 requests per minute per IP
-  private static authMaxRequests: number = 25; // 25 attempts per minute for auth/login
+  private static defaultWindowMs: number = 60 * 1000;
+  private static defaultMaxRequests: number = 120;
+  private static authMaxRequests: number = 25;
 
   private static buckets: Map<string, ClientBucket> = new Map();
 
@@ -48,7 +47,6 @@ export class RateLimiterMiddleware implements NestMiddleware {
       RateLimiterMiddleware.buckets.set(key, bucket);
     }
 
-    // Refill tokens based on time passed
     const timePassed = now - bucket.lastRefill;
     if (timePassed > 0) {
       const tokensToAdd = (timePassed / windowMs) * maxRequests;
@@ -56,7 +54,6 @@ export class RateLimiterMiddleware implements NestMiddleware {
       bucket.lastRefill = now;
     }
 
-    // Rate Limit Headers
     const remaining = Math.max(0, Math.floor(bucket.tokens));
     res.setHeader('X-RateLimit-Limit', maxRequests);
     res.setHeader('X-RateLimit-Remaining', Math.max(0, remaining - 1));
