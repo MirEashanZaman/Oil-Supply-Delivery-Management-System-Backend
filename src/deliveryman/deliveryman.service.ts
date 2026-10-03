@@ -75,10 +75,21 @@ export class DeliverymanService {
         return this.deliverymanRepo.find();
     }
 
-    async patchDeliveryman(id: number, data: Partial<DeliverymanDTO>): Promise<DeliverymanEntity> {
+    async patchDeliveryman(id: number, data: Partial<DeliverymanDTO> & { username?: string }): Promise<DeliverymanEntity> {
         const deliveryman = await this.deliverymanRepo.findOneBy({ id });
         if (!deliveryman) throw new NotFoundException('Deliveryman not found');
-        Object.assign(deliveryman, data);
+        const updateData: any = { ...data };
+        if (updateData.username && !updateData.userName) {
+            updateData.userName = updateData.username;
+        }
+        delete updateData.username;
+        if (updateData.password) {
+            const isHashed = /^\$2[aby]\$\d{2}\$/.test(updateData.password);
+            if (!isHashed) {
+                updateData.password = await bcrypt.hash(updateData.password, 10);
+            }
+        }
+        Object.assign(deliveryman, updateData);
         return await this.deliverymanRepo.save(deliveryman);
     }
 
