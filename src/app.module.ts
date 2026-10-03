@@ -63,5 +63,12 @@ import { DeliverymanAuthModule } from './deliveryman/auth/auth.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {
+  configure(consumer: import('@nestjs/common').MiddlewareConsumer) {
+    consumer
+      .apply(require('./patterns/observability/observability.middleware').ObservabilityMiddleware)
+      .forRoutes('*');
+  }
+}
+
 
