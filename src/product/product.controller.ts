@@ -1,4 +1,6 @@
-import { Controller, Get, Post, Put, Patch, Delete, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Body, Param, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage, MulterError } from 'multer';
 import { ProductService } from './product.service';
 import { Product } from './product.entity';
 
@@ -7,8 +9,31 @@ export class ProductController {
     constructor(private readonly productService: ProductService) { }
 
     @Post('create')
-    async createProduct(@Body() productData: Partial<Product>) {
-        return this.productService.createProduct(productData);
+    @UseInterceptors(FileInterceptor('photo', {
+        fileFilter: (req, file, cb) => {
+            if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
+                cb(null, true);
+            } else {
+                cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'photo'), false);
+            }
+        },
+        limits: { fileSize: 30 * 1024 * 1024 },
+        storage: diskStorage({
+            destination: './uploads',
+            filename: function (req, file, cb) {
+                cb(null, Date.now() + file.originalname);
+            },
+        }),
+    }))
+    async createProduct(
+        @Body() productData: Partial<Product>,
+        @UploadedFile() file?: Express.Multer.File,
+    ) {
+        const payload = { ...productData };
+        if (file?.filename) {
+            payload.image = `/uploads/${file.filename}`;
+        }
+        return this.productService.createProduct(payload);
     }
 
     @Get('list')

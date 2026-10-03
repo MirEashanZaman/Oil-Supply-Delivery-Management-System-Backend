@@ -66,7 +66,10 @@ import { DeliverymanAuthModule } from './deliveryman/auth/auth.module';
 export class AppModule {
   configure(consumer: import('@nestjs/common').MiddlewareConsumer) {
     consumer
-      .apply(require('./patterns/observability/observability.middleware').ObservabilityMiddleware)
+      .apply(
+        require('./patterns/observability/observability.middleware').ObservabilityMiddleware,
+        require('./patterns/rate-limit/rate-limiter.middleware').RateLimiterMiddleware,
+      )
       .forRoutes('*');
   }
 }

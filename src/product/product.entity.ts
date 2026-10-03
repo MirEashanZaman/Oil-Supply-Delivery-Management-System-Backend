@@ -12,6 +12,10 @@ export class Product {
     productId?: string;
     @Column()
     name?: string;
+    @Column({ type: 'text', nullable: true })
+    description?: string;
+    @Column({ type: 'text', nullable: true })
+    image?: string;
     @Column({ type: 'int', default: 0 })
     quantity?: number;
     @Column({ type: 'double precision', default: 0 })

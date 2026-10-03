@@ -119,8 +119,12 @@ export class SupplierService {
         await this.SupplierRepository.delete(id);
     }
 
-    async patchSupplier(id: number, data: Partial<SupplierDTO>): Promise<SupplierEntity | null> {
+    async patchSupplier(id: number, data: Partial<SupplierDTO> & { username?: string }): Promise<SupplierEntity | null> {
         const updateData: any = { ...data };
+        if (updateData.username && !updateData.userName) {
+            updateData.userName = updateData.username;
+        }
+        delete updateData.username;
         if (updateData.password) {
             const isHashed = /^\$2[aby]\$\d{2}\$/.test(updateData.password);
             if (!isHashed) {

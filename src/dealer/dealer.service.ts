@@ -110,8 +110,12 @@ export class DealerService {
     return { orderId: orderId, status: 'in-transit', message: 'Tracking status retrieved' };
   }
 
-  async patchDealer(id: number, data: Partial<DealerDTO>): Promise<Dealer | null> {
+  async patchDealer(id: number, data: Partial<DealerDTO> & { username?: string }): Promise<Dealer | null> {
     const updateData: any = { ...data };
+    if (updateData.username && !updateData.userName) {
+      updateData.userName = updateData.username;
+    }
+    delete updateData.username;
     if (updateData.password) {
       const isHashed = /^\$2[aby]\$\d{2}\$/.test(updateData.password);
       if (!isHashed) {

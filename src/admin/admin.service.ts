@@ -133,7 +133,7 @@ export class AdminService {
         await this.adminRepo.delete(id);
     }
 
-    async patchAdmin(id: number, loggedInEmail: string, data: Partial<AdminDTO>): Promise<AdminEntity | null> {
+    async patchAdmin(id: number, loggedInEmail: string, data: Partial<AdminDTO> & { username?: string }): Promise<AdminEntity | null> {
         const loggedInAdmin = await this.findByEmail(loggedInEmail);
         if (!loggedInAdmin) {
             throw new NotFoundException('Logged in admin not found');
@@ -141,13 +141,18 @@ export class AdminService {
         if (loggedInAdmin.id !== id) {
             throw new ForbiddenException("You can update yourself but you cannot update another admin!");
         }
-        if (data.password) {
-            const isHashed = /^\$2[aby]\$\d{2}\$/.test(data.password);
+        const updateData: any = { ...data };
+        if (updateData.username && !updateData.userName) {
+            updateData.userName = updateData.username;
+        }
+        delete updateData.username;
+        if (updateData.password) {
+            const isHashed = /^\$2[aby]\$\d{2}\$/.test(updateData.password);
             if (!isHashed) {
-                data.password = await bcrypt.hash(data.password, 10);
+                updateData.password = await bcrypt.hash(updateData.password, 10);
             }
         }
-        await this.adminRepo.update(id, data);
+        await this.adminRepo.update(id, updateData);
         return this.adminRepo.findOneBy({ id });
     }
 
