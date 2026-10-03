@@ -7,6 +7,7 @@ import { OrderEntity } from '../order/order.entity';
 import { DeliveryEntity } from '../delivery/delivery.entity';
 import { GeoProximityService, GeoCoordinate } from '../patterns/geo/geo-proximity.service';
 import { MailerService } from '@nestjs-modules/mailer';
+import * as bcrypt from 'bcrypt';
 
 export interface NearbyOrderResult {
     orderId: number;
