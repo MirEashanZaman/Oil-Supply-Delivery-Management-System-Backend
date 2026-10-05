@@ -8,6 +8,7 @@ import { DeliveryEntity } from '../delivery/delivery.entity';
 import { GeoProximityService, GeoCoordinate } from '../patterns/geo/geo-proximity.service';
 import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcrypt';
+import { RedisService } from '../redis/redis.service';
 
 export interface NearbyOrderResult {
     orderId: number;
@@ -36,6 +37,7 @@ export class DeliverymanService {
         @InjectRepository(DeliveryEntity)
         private deliveryRepo: Repository<DeliveryEntity>,
         private mailerService: MailerService,
+        private redisService: RedisService,
     ) { }
 
     async sendEmail(to: string, subject: string, text: string) {
@@ -61,19 +63,57 @@ export class DeliverymanService {
             title: 'Deliveryman',
             status: 'pending_approval',
         });
-        return await this.deliverymanRepo.save(deliveryman);
+        const saved = await this.deliverymanRepo.save(deliveryman);
+        try {
+            await this.redisService.del('deliverymen:all');
+        } catch {}
+        return saved;
     }
 
     async findByEmail(email: string): Promise<DeliverymanEntity | null> {
-        return this.deliverymanRepo.findOneBy({ email });
+        const cacheKey = `deliveryman:email:${email}`;
+        try {
+            const cached = await this.redisService.get(cacheKey);
+            if (cached) return JSON.parse(cached);
+        } catch {}
+
+        const deliveryman = await this.deliverymanRepo.findOneBy({ email });
+        if (deliveryman) {
+            try {
+                await this.redisService.set(cacheKey, JSON.stringify(deliveryman), 60);
+            } catch {}
+        }
+        return deliveryman;
     }
 
     async getDeliverymanById(id: number): Promise<DeliverymanEntity | null> {
-        return this.deliverymanRepo.findOneBy({ id });
+        const cacheKey = `deliveryman:id:${id}`;
+        try {
+            const cached = await this.redisService.get(cacheKey);
+            if (cached) return JSON.parse(cached);
+        } catch {}
+
+        const deliveryman = await this.deliverymanRepo.findOneBy({ id });
+        if (deliveryman) {
+            try {
+                await this.redisService.set(cacheKey, JSON.stringify(deliveryman), 60);
+            } catch {}
+        }
+        return deliveryman;
     }
 
     async getAllDeliverymen(): Promise<DeliverymanEntity[]> {
-        return this.deliverymanRepo.find();
+        const cacheKey = 'deliverymen:all';
+        try {
+            const cached = await this.redisService.get(cacheKey);
+            if (cached) return JSON.parse(cached);
+        } catch {}
+
+        const deliverymen = await this.deliverymanRepo.find();
+        try {
+            await this.redisService.set(cacheKey, JSON.stringify(deliverymen), 60);
+        } catch {}
+        return deliverymen;
     }
 
     async patchDeliveryman(id: number, data: Partial<DeliverymanDTO> & { username?: string }): Promise<DeliverymanEntity> {
@@ -91,7 +131,13 @@ export class DeliverymanService {
             }
         }
         Object.assign(deliveryman, updateData);
-        return await this.deliverymanRepo.save(deliveryman);
+        const saved = await this.deliverymanRepo.save(deliveryman);
+        try {
+            await this.redisService.del('deliverymen:all');
+            await this.redisService.del(`deliveryman:id:${id}`);
+            if (saved.email) await this.redisService.del(`deliveryman:email:${saved.email}`);
+        } catch {}
+        return saved;
     }
 
     async getNearbyOrders(deliverymanAddress?: string, radiusKm: number = 50): Promise<NearbyOrderResult[]> {
