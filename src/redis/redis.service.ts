@@ -28,7 +28,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         lazyConnect: true,
         connectTimeout: 2000,
         maxRetriesPerRequest: 1,
-        retryStrategy: () => null, // Do not spam reconnects if offline
+        retryStrategy: () => null,
       });
 
       this.client.on('connect', () => {
@@ -50,9 +50,6 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  /**
-   * Set a cached value with optional Time-To-Live (in seconds)
-   */
   async set(key: string, value: any, ttlSeconds?: number): Promise<boolean> {
     const stringVal = typeof value === 'string' ? value : JSON.stringify(value);
 
@@ -69,15 +66,11 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       }
     }
 
-    // In-memory fallback
     const expiresAt = ttlSeconds && ttlSeconds > 0 ? Date.now() + ttlSeconds * 1000 : null;
     this.inMemoryCache.set(key, { value: stringVal, expiresAt });
     return true;
   }
 
-  /**
-   * Retrieve cached value by key
-   */
   async get<T = any>(key: string): Promise<T | null> {
     if (this.isConnected && this.client) {
       try {
@@ -94,7 +87,6 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       }
     }
 
-    // In-memory fallback
     const item = this.inMemoryCache.get(key);
     if (!item) return null;
 
@@ -110,9 +102,6 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  /**
-   * Delete key from cache
-   */
   async del(key: string): Promise<boolean> {
     if (this.isConnected && this.client) {
       try {
@@ -123,9 +112,6 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return true;
   }
 
-  /**
-   * Increment counter atomically (used for rate limiting)
-   */
   async incr(key: string, ttlSeconds: number = 60): Promise<number> {
     if (this.isConnected && this.client) {
       try {
@@ -137,7 +123,6 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       } catch {}
     }
 
-    // In-memory fallback
     const item = this.inMemoryCache.get(key);
     let count = 1;
     if (item && (!item.expiresAt || Date.now() <= item.expiresAt)) {
