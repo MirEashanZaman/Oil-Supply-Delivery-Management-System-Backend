@@ -14,6 +14,7 @@ import { SupplierDTO } from "../supplier/supplier.dto";
 import { DeliverymanDTO } from "../deliveryman/deliveryman.dto";
 import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcrypt';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class AdminService {
@@ -32,6 +33,7 @@ export class AdminService {
         @InjectRepository(OrderEntity)
         private orderRepo: Repository<OrderEntity>,
         private mailerService: MailerService,
+        private redisService: RedisService,
     ) { }
 
     async sendEmail(to: string, subject: string, text: string) {
@@ -48,12 +50,23 @@ export class AdminService {
 
 
     async getAllUsers(): Promise<any[]> {
+        const cacheKey = 'users:admin:all';
+        try {
+            const cached = await this.redisService.get(cacheKey);
+            if (cached) return JSON.parse(cached);
+        } catch {}
+
         const admins = await this.adminRepo.find();
         const customers = await this.customerRepo.find();
         const dealers = await this.dealerRepo.find();
         const suppliers = await this.supplierRepo.find();
         const deliverymen = await this.deliverymanRepo.find();
-        return [...admins, ...customers, ...dealers, ...suppliers, ...deliverymen];
+        const allUsers = [...admins, ...customers, ...dealers, ...suppliers, ...deliverymen];
+
+        try {
+            await this.redisService.set(cacheKey, JSON.stringify(allUsers), 30);
+        } catch {}
+        return allUsers;
     }
 
 
@@ -76,7 +89,11 @@ export class AdminService {
             ...adminData,
             password: hashedPassword,
         });
-        return await this.adminRepo.save(admin);
+        const saved = await this.adminRepo.save(admin);
+        try {
+            await this.redisService.del('users:admin:all');
+        } catch {}
+        return saved;
     }
 
 
