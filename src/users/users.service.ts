@@ -6,6 +6,7 @@ import { AdminEntity } from '../admin/admin.entity';
 import { Dealer } from '../dealer/dealer.entity';
 import { SupplierEntity } from '../supplier/supplier.entity';
 import { DeliverymanEntity } from '../deliveryman/deliveryman.entity';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class UsersService {
@@ -20,48 +21,70 @@ export class UsersService {
         private supplierRepo: Repository<SupplierEntity>,
         @InjectRepository(DeliverymanEntity)
         private deliverymanRepo: Repository<DeliverymanEntity>,
+        private redisService: RedisService,
     ) { }
 
     async getAllUsers() {
+        const cacheKey = 'users:all_merged';
+        const cached = await this.redisService.get(cacheKey);
+        if (cached) return cached;
+
         const customers = await this.customerRepo.find();
         const admins = await this.adminRepo.find();
         const dealers = await this.dealerRepo.find();
         const suppliers = await this.supplierRepo.find();
         const deliverymen = await this.deliverymanRepo.find();
 
-        return {
+        const result = {
             customers: customers,
             admins: admins,
             dealers: dealers,
             suppliers: suppliers,
             deliverymen: deliverymen,
         };
+
+        await this.redisService.set(cacheKey, result, 30); // Cache for 30s
+        return result;
     }
 
     async searchUserByEmail(email: string) {
+        const cacheKey = `user:email:${email.toLowerCase().trim()}`;
+        const cached = await this.redisService.get(cacheKey);
+        if (cached) return cached;
+
         const customer = await this.customerRepo.findOneBy({ email });
         if (customer) {
-            return { user: customer, role: 'customer' };
+            const res = { user: customer, role: 'customer' };
+            await this.redisService.set(cacheKey, res, 60);
+            return res;
         }
 
         const admin = await this.adminRepo.findOneBy({ email });
         if (admin) {
-            return { user: admin, role: 'admin' };
+            const res = { user: admin, role: 'admin' };
+            await this.redisService.set(cacheKey, res, 60);
+            return res;
         }
 
         const dealer = await this.dealerRepo.findOneBy({ email });
         if (dealer) {
-            return { user: dealer, role: 'dealer' };
+            const res = { user: dealer, role: 'dealer' };
+            await this.redisService.set(cacheKey, res, 60);
+            return res;
         }
 
         const supplier = await this.supplierRepo.findOneBy({ email });
         if (supplier) {
-            return { user: supplier, role: 'supplier' };
+            const res = { user: supplier, role: 'supplier' };
+            await this.redisService.set(cacheKey, res, 60);
+            return res;
         }
 
         const deliveryman = await this.deliverymanRepo.findOneBy({ email });
         if (deliveryman) {
-            return { user: deliveryman, role: 'deliveryman' };
+            const res = { user: deliveryman, role: 'deliveryman' };
+            await this.redisService.set(cacheKey, res, 60);
+            return res;
         }
 
         return { message: 'User not found' };
