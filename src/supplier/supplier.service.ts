@@ -9,7 +9,7 @@ import { Product } from '../product/product.entity';
 import * as bcrypt from 'bcrypt';
 import { OrderEntity } from '../order/order.entity';
 import { DeliveryEntity } from '../delivery/delivery.entity';
-
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class SupplierService {
@@ -19,6 +19,7 @@ export class SupplierService {
         @InjectRepository(OrderEntity) private orderRepository: Repository<OrderEntity>,
         @InjectRepository(DeliveryEntity) private deliveryRepository: Repository<DeliveryEntity>,
         private mailerService: MailerService,
+        private redisService: RedisService,
     ) { }
 
     async sendEmail(to: string, subject: string, text: string) {
@@ -32,8 +33,18 @@ export class SupplierService {
         return "Nusrat";
     }
 
-    getAllSupplier(): object {
-        return this.SupplierRepository.find();
+    async getAllSupplier(): Promise<SupplierEntity[]> {
+        const cacheKey = 'suppliers:all';
+        try {
+            const cached = await this.redisService.get(cacheKey);
+            if (cached) return JSON.parse(cached);
+        } catch {}
+
+        const suppliers = await this.SupplierRepository.find();
+        try {
+            await this.redisService.set(cacheKey, JSON.stringify(suppliers), 60);
+        } catch {}
+        return suppliers;
     }
 
     getSupplierByID(id: number, userName: string): object {
@@ -54,16 +65,22 @@ export class SupplierService {
         const hashedPassword = supplierData.password
             ? (isHashed ? supplierData.password : await bcrypt.hash(supplierData.password, 10))
             : undefined;
-        return this.SupplierRepository.save({
+        const saved = await this.SupplierRepository.save({
             ...supplierData,
             password: hashedPassword,
         });
+        try {
+            await this.redisService.del('suppliers:all');
+        } catch {}
+        return saved;
     }
 
-
-    updateSupplier(id: number, status: string): Promise<UpdateResult> {
-
-        return this.SupplierRepository.update(id, { status });
+    async updateSupplier(id: number, status: string): Promise<UpdateResult> {
+        const res = await this.SupplierRepository.update(id, { status });
+        try {
+            await this.redisService.del('suppliers:all');
+        } catch {}
+        return res;
     }
 
     getInactiveSupplier(): Promise<SupplierEntity[]> {
@@ -75,7 +92,19 @@ export class SupplierService {
     }
 
     async findByEmail(email: string): Promise<SupplierEntity | null> {
-        return await this.SupplierRepository.findOneBy({ email });
+        const cacheKey = `supplier:email:${email}`;
+        try {
+            const cached = await this.redisService.get(cacheKey);
+            if (cached) return JSON.parse(cached);
+        } catch {}
+
+        const supplier = await this.SupplierRepository.findOneBy({ email });
+        if (supplier) {
+            try {
+                await this.redisService.set(cacheKey, JSON.stringify(supplier), 60);
+            } catch {}
+        }
+        return supplier;
     }
 
     async confirmOrder(orderId: number, status: string = 'confirmed') {
@@ -116,7 +145,12 @@ export class SupplierService {
     }
 
     async deleteSupplier(id: number): Promise<void> {
+        const supplier = await this.SupplierRepository.findOneBy({ id });
         await this.SupplierRepository.delete(id);
+        try {
+            await this.redisService.del('suppliers:all');
+            if (supplier?.email) await this.redisService.del(`supplier:email:${supplier.email}`);
+        } catch {}
     }
 
     async patchSupplier(id: number, data: Partial<SupplierDTO> & { username?: string }): Promise<SupplierEntity | null> {
@@ -132,7 +166,12 @@ export class SupplierService {
             }
         }
         await this.SupplierRepository.update(id, updateData);
-        return this.SupplierRepository.findOneBy({ id });
+        const updated = await this.SupplierRepository.findOneBy({ id });
+        try {
+            await this.redisService.del('suppliers:all');
+            if (updated?.email) await this.redisService.del(`supplier:email:${updated.email}`);
+        } catch {}
+        return updated;
     }
 
     async assignProducts(supplierId: number, productIds: number[]): Promise<SupplierEntity> {
