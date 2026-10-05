@@ -10,19 +10,16 @@ import cookieParser = require('cookie-parser');
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // 1. Penetration Testing Defense: Security Headers (XSS, Clickjacking, MIME-sniffing)
   app.use(
     helmet({
       crossOriginResourcePolicy: { policy: 'cross-origin' },
-      contentSecurityPolicy: false, // Allows flexible API calls
+      contentSecurityPolicy: false,
     }),
   );
 
-  // 2. Shell Bombing / DOS Defense: Strict Request Body Size Limits
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-  // 3. Input Sanitization & Injection Defense: Strip unexpected input properties
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
