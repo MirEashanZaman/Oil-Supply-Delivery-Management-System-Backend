@@ -33,7 +33,6 @@ export class RedisThrottlerGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    // Default rate limit: 10 requests per 60s for guarded endpoints
     const limit = options?.limit ?? 10;
     const ttl = options?.ttlSeconds ?? 60;
     const prefix = options?.keyPrefix ?? 'rate_limit';
@@ -44,7 +43,6 @@ export class RedisThrottlerGuard implements CanActivate {
       req.socket?.remoteAddress ||
       '127.0.0.1';
 
-    // Granular key combining route, IP, and optional user email
     const route = req.path || req.url;
     const identifier = req.body?.email || req.body?.userName || clientIp;
     const rateLimitKey = `${prefix}:${route}:${identifier}`;
