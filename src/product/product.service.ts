@@ -5,9 +5,13 @@ import { Product } from './product.entity';
 import { Category } from '../category/category.entity';
 import { OrderEntity } from '../order/order.entity';
 import { OrderDetailsEntity } from '../order/order-details.entity';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class ProductService {
+    private readonly PRODUCTS_CACHE_KEY = 'products:all';
+    private readonly CACHE_TTL_SECONDS = 60;
+
     constructor(
         @InjectRepository(Product)
         private productRepository: Repository<Product>,
@@ -15,13 +19,24 @@ export class ProductService {
         private categoryRepository: Repository<Category>,
         @InjectRepository(OrderEntity)
         private orderRepository: Repository<OrderEntity>,
+        private readonly redisService: RedisService,
     ) { }
+
+    private async invalidateCache(): Promise<void> {
+        try {
+            await this.redisService.del(this.PRODUCTS_CACHE_KEY);
+        } catch {
+            // Redis failure should never break business logic
+        }
+    }
+
     async addProductToCategory(productId: number, categoryId: number): Promise<void> {
         const product = await this.productRepository.findOneBy({ id: productId });
         const category = await this.categoryRepository.findOneBy({ id: categoryId });
         if (product && category) {
             product.categories = [...(product.categories ?? []), category];
             await this.productRepository.save(product);
+            await this.invalidateCache();
         }
     }
     async removeProductFromCategory(productId: number, categoryId: number): Promise<void> {
@@ -30,10 +45,22 @@ export class ProductService {
         if (product && category) {
             product.categories = (product.categories ?? []).filter((c) => c.id !== category.id);
             await this.productRepository.save(product);
+            await this.invalidateCache();
         }
     }
     async getProductsWithCategories(): Promise<Product[]> {
-        return this.productRepository.find({ relations: { categories: true, suppliers: true, dealers: true } });
+        try {
+            const cached = await this.redisService.get(this.PRODUCTS_CACHE_KEY);
+            if (cached) {
+                return JSON.parse(cached);
+            }
+        } catch {}
+
+        const products = await this.productRepository.find({ relations: { categories: true, suppliers: true, dealers: true } });
+        try {
+            await this.redisService.set(this.PRODUCTS_CACHE_KEY, JSON.stringify(products), this.CACHE_TTL_SECONDS);
+        } catch {}
+        return products;
     }
 
     async updateProductQuantity(productId: number, quantity: number): Promise<Product | { message: string }> {
@@ -45,16 +72,20 @@ export class ProductService {
             return { message: "Product not found" };
         }
         product.quantity = quantity;
-        return this.productRepository.save(product);
+        const saved = await this.productRepository.save(product);
+        await this.invalidateCache();
+        return saved;
     }
 
     async createProduct(productData: Partial<Product>): Promise<Product> {
         const product = this.productRepository.create(productData);
-        return this.productRepository.save(product);
+        const saved = await this.productRepository.save(product);
+        await this.invalidateCache();
+        return saved;
     }
 
     async getAllProducts(): Promise<Product[]> {
-        return this.productRepository.find({ relations: { categories: true, suppliers: true, dealers: true } });
+        return this.getProductsWithCategories();
     }
 
     async updatePrice(productId: number, price: number): Promise<Product | { message: string }> {
@@ -66,7 +97,9 @@ export class ProductService {
             return { message: "Product not found" };
         }
         product.price = price;
-        return this.productRepository.save(product);
+        const saved = await this.productRepository.save(product);
+        await this.invalidateCache();
+        return saved;
     }
 
     async deleteProduct(productId: number): Promise<{ message: string }> {
@@ -96,6 +129,7 @@ export class ProductService {
             await productRepo.delete(productId);
         });
 
+        await this.invalidateCache();
         return { message: 'Product deleted successfully' };
     }
 
