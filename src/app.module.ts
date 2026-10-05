@@ -19,10 +19,12 @@ import { ReviewModule } from './review/review.module';
 import { DeliverymanModule } from './deliveryman/deliveryman.module';
 import { DeliverymanAuthModule } from './deliveryman/auth/auth.module';
 import { RabbitMQModule } from './rabbitmq/rabbitmq.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
     RabbitMQModule,
+    RedisModule,
     AdminModule,
     CustomerModule,
     SupplierModule,
