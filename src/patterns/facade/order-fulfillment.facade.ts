@@ -52,11 +52,11 @@ export class OrderFulfillmentFacade {
     if (input.productId) {
       product = await this.productRepo.findOneBy({ id: input.productId });
       if (!product || !product.quantity || product.quantity <= 0) {
-        throw new BadRequestException('Low stock');
+        throw new BadRequestException('Not enough stock');
       }
       const requestedQty = input.quantity || 1;
       if (product.quantity < requestedQty) {
-        throw new BadRequestException('Low stock');
+        throw new BadRequestException('Not enough stock');
       }
       product.quantity = product.quantity - requestedQty;
       await this.productRepo.save(product);
