@@ -11,6 +11,8 @@ import { DeliveryEntity } from '../delivery/delivery.entity';
 import { GeoProximityService, PartnerLocation } from '../patterns/geo/geo-proximity.service';
 import * as bcrypt from 'bcrypt';
 
+import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
+
 @Injectable()
 export class DealerService {
   constructor(
@@ -25,6 +27,7 @@ export class DealerService {
     @InjectRepository(DeliveryEntity)
     private deliveryRepository: Repository<DeliveryEntity>,
     private mailerService: MailerService,
+    private rabbitMQService: RabbitMQService,
   ) { }
 
   async sendEmail(to: string, subject: string, text: string) {
@@ -82,9 +85,15 @@ export class DealerService {
     if (!dealer) throw new NotFoundException('Dealer not found');
 
     let product: Product | null = null;
+    const requestedQty = Number(orderData.quantity) || 1;
     if (orderData.productId) {
       product = await this.productRepository.findOneBy({ id: orderData.productId });
       if (!product) throw new NotFoundException('Product not found');
+      if (!product.quantity || product.quantity <= 0 || product.quantity < requestedQty) {
+        throw new BadRequestException('Not enough stock');
+      }
+      product.quantity = product.quantity - requestedQty;
+      await this.productRepository.save(product);
     }
 
     let supplier: SupplierEntity | null = null;
@@ -94,16 +103,36 @@ export class DealerService {
     }
 
     const order = this.orderRepository.create({
-      quantity: orderData.quantity || 1,
+      quantity: requestedQty,
       sourceType: orderData.sourceType || 'dealer',
       supplierId: supplier?.id ?? orderData.supplierId ?? undefined,
       dealerId: dealer.id,
       product: product || undefined,
       dealer: dealer,
       supplier: supplier || undefined,
+      status: 'pending',
     });
 
-    return await this.orderRepository.save(order);
+    const saved = await this.orderRepository.save(order);
+
+    if (this.rabbitMQService && typeof this.rabbitMQService.sendMessage === 'function') {
+      await this.rabbitMQService.sendMessage(
+        'order_notifications_queue',
+        'order.wholesale.created',
+        {
+          orderId: saved.id,
+          productName: product?.name || 'Wholesale Petroleum Lot',
+          quantity: requestedQty,
+          dealerEmail: dealer.email,
+          supplierId: supplier?.id,
+          timestamp: new Date().toISOString(),
+        },
+        dealer.userName || dealer.email,
+        'Supplier Wholesale Desk'
+      );
+    }
+
+    return saved;
   }
 
   trackOrderStatus(orderId: number) {
