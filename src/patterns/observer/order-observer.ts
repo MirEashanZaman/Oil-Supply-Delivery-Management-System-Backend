@@ -39,6 +39,25 @@ export class RealtimeDispatchObserver implements OrderObserver {
   }
 }
 
+export class RabbitMQOrderObserver implements OrderObserver {
+  readonly observerName = 'RabbitMQOrderObserver';
+
+  constructor(private rabbitService?: any) {}
+
+  async onOrderEvent(eventType: 'CREATED' | 'CONFIRMED' | 'DELIVERED' | 'CANCELLED', payload: OrderEventPayload): Promise<void> {
+    console.log(`[Observer - RabbitMQ Broker] Queuing event ${eventType} for Order #${payload.orderId}`);
+    if (this.rabbitService && typeof this.rabbitService.sendMessage === 'function') {
+      await this.rabbitService.sendMessage(
+        'order_notifications_queue',
+        `order.${eventType.toLowerCase()}`,
+        payload,
+        'OrderFulfillmentService',
+        payload.customerEmail || 'customer'
+      );
+    }
+  }
+}
+
 export class OrderSubject {
   private observers: OrderObserver[] = [];
 
