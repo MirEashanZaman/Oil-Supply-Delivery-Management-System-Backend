@@ -330,7 +330,11 @@ export class CustomerService {
             await this.redisService.del('customers:all');
             await this.redisService.del(`customer:id:${id}`);
             if (updated?.username) await this.redisService.del(`customer:username:${updated.username}`);
-            if (updated?.email) await this.redisService.del(`customer:email:${updated.email}`);
+            if (updated?.email) {
+                await this.redisService.del(`customer:email:${updated.email}`);
+                await this.redisService.del(`user:email:${updated.email.toLowerCase().trim()}`);
+            }
+            await this.redisService.del('users:all_merged');
         } catch {}
         return updated;
     }
