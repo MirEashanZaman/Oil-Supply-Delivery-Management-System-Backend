@@ -12,10 +12,11 @@ import { Dealer } from '../dealer/dealer.entity';
 import { SupplierEntity } from '../supplier/supplier.entity';
 import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcrypt';
-import { OrderSubject, EmailNotificationObserver, AuditLogObserver, RealtimeDispatchObserver } from '../patterns/observer/order-observer';
+import { OrderSubject, EmailNotificationObserver, AuditLogObserver, RealtimeDispatchObserver, RabbitMQOrderObserver } from '../patterns/observer/order-observer';
 import { OrderFulfillmentSagaOrchestrator, SagaContext, SagaStep } from '../patterns/saga/order-saga';
 import { PaymentStrategyResolver } from '../patterns/strategy/payment-strategy';
 import { GeoProximityService, PartnerLocation } from '../patterns/geo/geo-proximity.service';
+import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
 
 import { OrderFulfillmentFacade } from '../patterns/facade/order-fulfillment.facade';
 
@@ -35,11 +36,13 @@ export class CustomerService {
         @InjectRepository(Dealer) private dealerRepository: Repository<Dealer>,
         @InjectRepository(SupplierEntity) private supplierRepository: Repository<SupplierEntity>,
         private mailerService: MailerService,
+        private rabbitMQService: RabbitMQService,
     ) {
         this.orderSubject = new OrderSubject();
         this.orderSubject.attach(new EmailNotificationObserver());
         this.orderSubject.attach(new AuditLogObserver());
         this.orderSubject.attach(new RealtimeDispatchObserver());
+        this.orderSubject.attach(new RabbitMQOrderObserver(this.rabbitMQService));
         this.paymentStrategyResolver = new PaymentStrategyResolver();
         this.orderFacade = new OrderFulfillmentFacade(
             this.customerRepository,
