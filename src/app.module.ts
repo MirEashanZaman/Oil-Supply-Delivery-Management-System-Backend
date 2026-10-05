@@ -18,9 +18,11 @@ import { DeliveryModule } from './delivery/delivery.module';
 import { ReviewModule } from './review/review.module';
 import { DeliverymanModule } from './deliveryman/deliveryman.module';
 import { DeliverymanAuthModule } from './deliveryman/auth/auth.module';
+import { RabbitMQModule } from './rabbitmq/rabbitmq.module';
 
 @Module({
   imports: [
+    RabbitMQModule,
     AdminModule,
     CustomerModule,
     SupplierModule,
