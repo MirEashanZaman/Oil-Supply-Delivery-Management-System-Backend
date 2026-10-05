@@ -17,6 +17,7 @@ import { OrderFulfillmentSagaOrchestrator, SagaContext, SagaStep } from '../patt
 import { PaymentStrategyResolver } from '../patterns/strategy/payment-strategy';
 import { GeoProximityService, PartnerLocation } from '../patterns/geo/geo-proximity.service';
 import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
+import { RedisService } from '../redis/redis.service';
 
 import { OrderFulfillmentFacade } from '../patterns/facade/order-fulfillment.facade';
 
@@ -37,6 +38,7 @@ export class CustomerService {
         @InjectRepository(SupplierEntity) private supplierRepository: Repository<SupplierEntity>,
         private mailerService: MailerService,
         private rabbitMQService: RabbitMQService,
+        private redisService: RedisService,
     ) {
         this.orderSubject = new OrderSubject();
         this.orderSubject.attach(new EmailNotificationObserver());
@@ -71,7 +73,13 @@ export class CustomerService {
     }
 
     async getAllCustomer(): Promise<CustomerEntity[]> {
-        return this.customerRepository.find({
+        const cacheKey = 'customers:all';
+        try {
+            const cached = await this.redisService.get(cacheKey);
+            if (cached) return JSON.parse(cached);
+        } catch {}
+
+        const customers = await this.customerRepository.find({
             relations: {
                 orders: {
                     product: true,
@@ -80,10 +88,27 @@ export class CustomerService {
                 },
             },
         });
+
+        try {
+            await this.redisService.set(cacheKey, JSON.stringify(customers), 60);
+        } catch {}
+        return customers;
     }
 
     async getCustomerByID(id: number): Promise<CustomerEntity | null> {
-        return this.customerRepository.findOneBy({ id });
+        const cacheKey = `customer:id:${id}`;
+        try {
+            const cached = await this.redisService.get(cacheKey);
+            if (cached) return JSON.parse(cached);
+        } catch {}
+
+        const customer = await this.customerRepository.findOneBy({ id });
+        if (customer) {
+            try {
+                await this.redisService.set(cacheKey, JSON.stringify(customer), 60);
+            } catch {}
+        }
+        return customer;
     }
 
     getCustomerByIDandName(id: number, name: string): object {
@@ -105,7 +130,11 @@ export class CustomerService {
             ...customerData,
             password: hashedPassword,
         });
-        return this.customerRepository.save(customer);
+        const saved = await this.customerRepository.save(customer);
+        try {
+            await this.redisService.del('customers:all');
+        } catch {}
+        return saved;
     }
 
     updateCustomer(id: number, updateCustomer: CustomerDTO): CustomerDTO {
@@ -122,7 +151,7 @@ export class CustomerService {
         const resolvedSupplierId = order.supplier?.id ?? (order.supplierId ? Number(order.supplierId) : undefined);
         const resolvedDealerId = order.dealer?.id ?? (order.dealerId ? Number(order.dealerId) : undefined);
 
-        return this.orderFacade.placeOrder({
+        const result = await this.orderFacade.placeOrder({
             customerId: Number(customerId),
             productId: order.product?.id,
             dealerId: resolvedDealerId,
@@ -136,9 +165,20 @@ export class CustomerService {
             deliveryAddress: (order as any).deliveryAddress || (order as any).address,
             sourceType: order.sourceType,
         });
+        try {
+            await this.redisService.del(`customer:orders:${customerId}`);
+            await this.redisService.del('products:all');
+        } catch {}
+        return result;
     }
     async getOrdersByCustomerId(customerId: string): Promise<OrderEntity[]> {
-        return this.orderRepository.find({
+        const cacheKey = `customer:orders:${customerId}`;
+        try {
+            const cached = await this.redisService.get(cacheKey);
+            if (cached) return JSON.parse(cached);
+        } catch {}
+
+        const orders = await this.orderRepository.find({
             where: { customer: { id: Number(customerId) } },
             relations: {
                 product: true,
@@ -146,6 +186,10 @@ export class CustomerService {
                 dealer: true,
             },
         });
+        try {
+            await this.redisService.set(cacheKey, JSON.stringify(orders), 30);
+        } catch {}
+        return orders;
     }
 
     async deleteOrder(customerId: string, orderId: string): Promise<{ message: string }> {
@@ -167,6 +211,10 @@ export class CustomerService {
             customerEmail: order.customer.email,
             timestamp: new Date(),
         });
+
+        try {
+            await this.redisService.del(`customer:orders:${customerId}`);
+        } catch {}
 
         return { message: 'Order deleted' };
     }
@@ -212,19 +260,56 @@ export class CustomerService {
             timestamp: new Date(),
         });
 
+        if (order.customer?.id) {
+            try {
+                await this.redisService.del(`customer:orders:${order.customer.id}`);
+            } catch {}
+        }
+
         return { order, delivery, message: `Order status updated to ${nextStatus} by customer` };
     }
 
     async findByUsername(username: string): Promise<CustomerEntity | null> {
-        return this.customerRepository.findOneBy({ username });
+        const cacheKey = `customer:username:${username}`;
+        try {
+            const cached = await this.redisService.get(cacheKey);
+            if (cached) return JSON.parse(cached);
+        } catch {}
+
+        const customer = await this.customerRepository.findOneBy({ username });
+        if (customer) {
+            try {
+                await this.redisService.set(cacheKey, JSON.stringify(customer), 60);
+            } catch {}
+        }
+        return customer;
     }
 
     async findByEmail(email: string): Promise<CustomerEntity | null> {
-        return this.customerRepository.findOneBy({ email });
+        const cacheKey = `customer:email:${email}`;
+        try {
+            const cached = await this.redisService.get(cacheKey);
+            if (cached) return JSON.parse(cached);
+        } catch {}
+
+        const customer = await this.customerRepository.findOneBy({ email });
+        if (customer) {
+            try {
+                await this.redisService.set(cacheKey, JSON.stringify(customer), 60);
+            } catch {}
+        }
+        return customer;
     }
 
     async deleteByUsername(username: string): Promise<void> {
+        const customer = await this.findByUsername(username);
         await this.customerRepository.delete({ username });
+        try {
+            await this.redisService.del('customers:all');
+            await this.redisService.del(`customer:username:${username}`);
+            if (customer?.email) await this.redisService.del(`customer:email:${customer.email}`);
+            if (customer?.id) await this.redisService.del(`customer:id:${customer.id}`);
+        } catch {}
     }
 
     async patchCustomer(id: number, data: Partial<CustomerDTO> & { username?: string }): Promise<CustomerEntity | null> {
@@ -240,7 +325,14 @@ export class CustomerService {
             }
         }
         await this.customerRepository.update(id, updateData);
-        return this.customerRepository.findOneBy({ id });
+        const updated = await this.customerRepository.findOneBy({ id });
+        try {
+            await this.redisService.del('customers:all');
+            await this.redisService.del(`customer:id:${id}`);
+            if (updated?.username) await this.redisService.del(`customer:username:${updated.username}`);
+            if (updated?.email) await this.redisService.del(`customer:email:${updated.email}`);
+        } catch {}
+        return updated;
     }
 
     async findNearbySuppliersAndDealers(address?: string, radiusKm: number = 50) {
