@@ -10,7 +10,7 @@ import { SupplierEntity } from '../supplier/supplier.entity';
 import { DeliveryEntity } from '../delivery/delivery.entity';
 import { GeoProximityService, PartnerLocation } from '../patterns/geo/geo-proximity.service';
 import * as bcrypt from 'bcrypt';
-
+import { RedisService } from '../redis/redis.service';
 import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
 
 @Injectable()
@@ -28,6 +28,7 @@ export class DealerService {
     private deliveryRepository: Repository<DeliveryEntity>,
     private mailerService: MailerService,
     private rabbitMQService: RabbitMQService,
+    private redisService: RedisService,
   ) { }
 
   async sendEmail(to: string, subject: string, text: string) {
@@ -52,14 +53,23 @@ export class DealerService {
       ...dealerData,
       password: hashedPassword,
     });
-    return this.dealerRepository.save(newDealer);
+    const saved = await this.dealerRepository.save(newDealer);
+    try {
+      await this.redisService.del('dealers:all');
+    } catch {}
+    return saved;
   }
 
   async updatePhone(id: number, dealerData: DealerDTO): Promise<Dealer | null> {
     await this.dealerRepository.update(id, {
       phoneNumber: dealerData.phoneNumber,
     });
-    return this.dealerRepository.findOneBy({ id });
+    const updated = await this.dealerRepository.findOneBy({ id });
+    try {
+      await this.redisService.del('dealers:all');
+      if (updated?.email) await this.redisService.del(`dealer:email:${updated.email}`);
+    } catch {}
+    return updated;
   }
 
   async getDealersWithNoName(): Promise<Dealer[]> {
@@ -69,15 +79,42 @@ export class DealerService {
   }
 
   async deleteDealer(id: number): Promise<void> {
+    const dealer = await this.dealerRepository.findOneBy({ id });
     await this.dealerRepository.delete(id);
+    try {
+      await this.redisService.del('dealers:all');
+      if (dealer?.email) await this.redisService.del(`dealer:email:${dealer.email}`);
+    } catch {}
   }
 
   async findByEmail(email: string): Promise<Dealer | null> {
-    return await this.dealerRepository.findOneBy({ email });
+    const cacheKey = `dealer:email:${email}`;
+    try {
+      const cached = await this.redisService.get(cacheKey);
+      if (cached) return JSON.parse(cached);
+    } catch {}
+
+    const dealer = await this.dealerRepository.findOneBy({ email });
+    if (dealer) {
+      try {
+        await this.redisService.set(cacheKey, JSON.stringify(dealer), 60);
+      } catch {}
+    }
+    return dealer;
   }
 
   async getAllDealers(): Promise<Dealer[]> {
-    return this.dealerRepository.find();
+    const cacheKey = 'dealers:all';
+    try {
+      const cached = await this.redisService.get(cacheKey);
+      if (cached) return JSON.parse(cached);
+    } catch {}
+
+    const dealers = await this.dealerRepository.find();
+    try {
+      await this.redisService.set(cacheKey, JSON.stringify(dealers), 60);
+    } catch {}
+    return dealers;
   }
 
   async placeOrder(orderData: any, dealerEmail: string): Promise<any> {
@@ -152,7 +189,12 @@ export class DealerService {
       }
     }
     await this.dealerRepository.update(id, updateData);
-    return this.dealerRepository.findOneBy({ id });
+    const updated = await this.dealerRepository.findOneBy({ id });
+    try {
+      await this.redisService.del('dealers:all');
+      if (updated?.email) await this.redisService.del(`dealer:email:${updated.email}`);
+    } catch {}
+    return updated;
   }
 
   async assignProducts(dealerId: number, productIds: number[]): Promise<Dealer> {
