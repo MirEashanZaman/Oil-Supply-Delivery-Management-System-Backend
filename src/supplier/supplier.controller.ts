@@ -4,7 +4,7 @@ import { SupplierService } from "./supplier.service"
 import { SupplierDTO } from "./supplier.dto";
 import { SupplierEntity } from "./supplier.entity";
 import { FileInterceptor } from '@nestjs/platform-express';
-import { MulterError, diskStorage } from 'multer';
+import { createSecureUploadOptions } from "../common/upload-security";
 
 @Controller('supplier')
 @UseGuards(AuthGuard)
@@ -78,22 +78,7 @@ export class SupplierController {
     }
 
     @Patch(':id')
-    @UseInterceptors(FileInterceptor('photo', {
-        fileFilter: (req, file, cb) => {
-            if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
-                cb(null, true);
-            } else {
-                cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'photo'), false);
-            }
-        },
-        limits: { fileSize: 30 * 1024 * 1024 },
-        storage: diskStorage({
-            destination: './uploads',
-            filename: function (req, file, cb) {
-                cb(null, Date.now() + file.originalname);
-            },
-        }),
-    }))
+    @UseInterceptors(FileInterceptor('photo', createSecureUploadOptions('photo', 10 * 1024 * 1024)))
     patchSupplier(
         @Param('id') id: string,
         @Body() data: Partial<SupplierDTO>,
@@ -107,22 +92,7 @@ export class SupplierController {
     }
 
     @Post(':id/upload-photo')
-    @UseInterceptors(FileInterceptor('photo', {
-        fileFilter: (req, file, cb) => {
-            if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
-                cb(null, true);
-            } else {
-                cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'photo'), false);
-            }
-        },
-        limits: { fileSize: 30 * 1024 * 1024 },
-        storage: diskStorage({
-            destination: './uploads',
-            filename: function (req, file, cb) {
-                cb(null, Date.now() + file.originalname);
-            },
-        }),
-    }))
+    @UseInterceptors(FileInterceptor('photo', createSecureUploadOptions('photo', 10 * 1024 * 1024)))
     uploadSupplierPhoto(
         @Param('id') id: string,
         @UploadedFile() file?: Express.Multer.File,
