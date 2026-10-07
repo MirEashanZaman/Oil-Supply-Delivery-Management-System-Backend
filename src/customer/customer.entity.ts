@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, BeforeInsert, CreateDateColumn } from "typeorm"
 import { randomUUID } from "crypto";
+import { Exclude } from "class-transformer";
 import { OrderEntity } from "../order/order.entity";
 import { AdminEntity } from "../admin/admin.entity";
 import { PaymentEntity } from "../payment/payment.entity";
@@ -17,6 +18,7 @@ export class CustomerEntity {
     @Column()
     email?: string;
     @Column()
+    @Exclude({ toPlainOnly: true })
     password?: string;
     @Column({ nullable: true })
     filename?: string;
