@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert, ManyToMany, JoinTable, CreateDateColumn, ManyToOne, OneToMany } from 'typeorm';
 import { randomUUID } from 'crypto';
+import { Exclude } from 'class-transformer';
 import { Product } from '../product/product.entity';
 import { AdminEntity } from '../admin/admin.entity';
 import { OrderEntity } from '../order/order.entity';
@@ -14,6 +15,7 @@ export class Dealer {
     email?: string;
 
     @Column()
+    @Exclude({ toPlainOnly: true })
     password?: string;
 
     @Column({ nullable: true })
