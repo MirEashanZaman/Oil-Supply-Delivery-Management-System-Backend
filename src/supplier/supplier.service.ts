@@ -102,7 +102,7 @@ export class SupplierService {
         const cacheKey = `supplier:email:${email}`;
         try {
             const cached = await this.redisService.get(cacheKey);
-            if (cached) return JSON.parse(cached);
+            if (cached) return typeof cached === 'string' ? JSON.parse(cached) : cached;
         } catch {}
 
         const supplier = await this.SupplierRepository.findOneBy({ email });
