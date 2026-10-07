@@ -72,6 +72,12 @@ export class CustomerService {
         return "Eashan";
     }
 
+    private sanitizeCustomer(cust: any) {
+        if (!cust) return cust;
+        const { password, ...safeCust } = cust;
+        return safeCust;
+    }
+
     async getAllCustomer(): Promise<CustomerEntity[]> {
         const cacheKey = 'customers:all';
         try {
@@ -89,10 +95,11 @@ export class CustomerService {
             },
         });
 
+        const safeCustomers = customers.map((c) => this.sanitizeCustomer(c));
         try {
-            await this.redisService.set(cacheKey, JSON.stringify(customers), 60);
+            await this.redisService.set(cacheKey, JSON.stringify(safeCustomers), 60);
         } catch {}
-        return customers;
+        return safeCustomers as CustomerEntity[];
     }
 
     async getCustomerByID(id: number): Promise<CustomerEntity | null> {
@@ -103,12 +110,13 @@ export class CustomerService {
         } catch {}
 
         const customer = await this.customerRepository.findOneBy({ id });
-        if (customer) {
+        const safeCustomer = this.sanitizeCustomer(customer);
+        if (safeCustomer) {
             try {
-                await this.redisService.set(cacheKey, JSON.stringify(customer), 60);
+                await this.redisService.set(cacheKey, JSON.stringify(safeCustomer), 60);
             } catch {}
         }
-        return customer;
+        return safeCustomer as CustomerEntity | null;
     }
 
     getCustomerByIDandName(id: number, name: string): object {
