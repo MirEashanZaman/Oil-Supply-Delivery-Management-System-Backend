@@ -49,6 +49,12 @@ export class AdminService {
     }
 
 
+    private sanitizeUser(user: any) {
+        if (!user) return user;
+        const { password, ...safeUser } = user;
+        return safeUser;
+    }
+
     async getAllUsers(): Promise<any[]> {
         const cacheKey = 'users:admin:all';
         try {
@@ -56,11 +62,11 @@ export class AdminService {
             if (cached) return JSON.parse(cached);
         } catch {}
 
-        const admins = await this.adminRepo.find();
-        const customers = await this.customerRepo.find();
-        const dealers = await this.dealerRepo.find();
-        const suppliers = await this.supplierRepo.find();
-        const deliverymen = await this.deliverymanRepo.find();
+        const admins = (await this.adminRepo.find()).map((u) => this.sanitizeUser(u));
+        const customers = (await this.customerRepo.find()).map((u) => this.sanitizeUser(u));
+        const dealers = (await this.dealerRepo.find()).map((u) => this.sanitizeUser(u));
+        const suppliers = (await this.supplierRepo.find()).map((u) => this.sanitizeUser(u));
+        const deliverymen = (await this.deliverymanRepo.find()).map((u) => this.sanitizeUser(u));
         const allUsers = [...admins, ...customers, ...dealers, ...suppliers, ...deliverymen];
 
         try {
@@ -70,8 +76,9 @@ export class AdminService {
     }
 
 
-    getAdminByID(id: number): Promise<AdminEntity | null> {
-        return this.adminRepo.findOneBy({ id });
+    async getAdminByID(id: number): Promise<AdminEntity | null> {
+        const admin = await this.adminRepo.findOneBy({ id });
+        return this.sanitizeUser(admin);
     }
 
     async createAdmin(adminData: AdminDTO): Promise<AdminEntity> {
