@@ -109,10 +109,14 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-# Local & Node
 node_modules
 .env
 dist
+uploads/
+backend-fix-temp/
+*.zip
+*.log
+coverage/
 .webpack
 .serverless/**/*.zip
 .claude-flow
