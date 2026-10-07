@@ -26,7 +26,6 @@ export class ProductService {
         try {
             await this.redisService.del(this.PRODUCTS_CACHE_KEY);
         } catch {
-            // Redis failure should never break business logic
         }
     }
 
