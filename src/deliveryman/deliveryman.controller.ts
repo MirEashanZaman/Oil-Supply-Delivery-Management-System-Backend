@@ -15,7 +15,7 @@ import { DeliverymanService } from './deliveryman.service';
 import { DeliverymanDTO } from './deliveryman.dto';
 import { AuthGuard } from '../customer/auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage, MulterError } from 'multer';
+import { createSecureUploadOptions } from '../common/upload-security';
 
 @Controller('deliveryman')
 export class DeliverymanController {
@@ -83,24 +83,7 @@ export class DeliverymanController {
 
     @Patch(':id')
     @UseGuards(AuthGuard)
-    @UseInterceptors(
-        FileInterceptor('photo', {
-            fileFilter: (req, file, cb) => {
-                if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
-                    cb(null, true);
-                } else {
-                    cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'photo'), false);
-                }
-            },
-            limits: { fileSize: 30 * 1024 * 1024 },
-            storage: diskStorage({
-                destination: './uploads',
-                filename: function (req, file, cb) {
-                    cb(null, Date.now() + file.originalname);
-                },
-            }),
-        }),
-    )
+    @UseInterceptors(FileInterceptor('photo', createSecureUploadOptions('photo', 10 * 1024 * 1024)))
     patchDeliveryman(
         @Param('id') id: string,
         @Body() data: Partial<DeliverymanDTO>,
