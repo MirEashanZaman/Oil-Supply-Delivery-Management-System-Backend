@@ -74,7 +74,7 @@ export class DeliverymanService {
         const cacheKey = `deliveryman:email:${email}`;
         try {
             const cached = await this.redisService.get(cacheKey);
-            if (cached) return JSON.parse(cached);
+            if (cached) return typeof cached === 'string' ? JSON.parse(cached) : cached;
         } catch {}
 
         const deliveryman = await this.deliverymanRepo.findOneBy({ email });
