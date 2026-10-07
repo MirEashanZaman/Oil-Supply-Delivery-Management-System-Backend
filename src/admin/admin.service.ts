@@ -217,7 +217,6 @@ export class AdminService {
         await this.customerRepo.delete(id);
     }
 
-    // Dealer CRUD
     async adminCreateDealer(data: DealerDTO): Promise<Dealer> {
         const existing = await this.dealerRepo.findOneBy({ email: data.email as string });
         if (existing) {
@@ -250,7 +249,6 @@ export class AdminService {
         await this.dealerRepo.delete(id);
     }
 
-    // Supplier CRUD
     async adminCreateSupplier(data: SupplierDTO): Promise<SupplierEntity> {
         const existing = await this.supplierRepo.findOneBy({ email: data.email as string });
         if (existing) {
@@ -281,7 +279,6 @@ export class AdminService {
         await this.supplierRepo.delete(id);
     }
 
-    // Deliveryman CRUD & Approval
     async adminCreateDeliveryman(data: DeliverymanDTO): Promise<DeliverymanEntity> {
         const existing = await this.deliverymanRepo.findOneBy({ email: data.email as string });
         if (existing) {
@@ -292,7 +289,7 @@ export class AdminService {
             ...data,
             password: hashedPassword,
             title: 'Deliveryman',
-            status: 'active', // Admin created deliverymen are active immediately
+            status: 'active',
         });
         return this.deliverymanRepo.save(deliveryman);
     }
@@ -331,7 +328,6 @@ export class AdminService {
         await this.deliverymanRepo.delete(id);
     }
 
-    // Order CRUD (Update and Delete only, no creation)
     async adminUpdateOrder(id: number, data: Partial<OrderEntity>): Promise<OrderEntity | null> {
         const order = await this.orderRepo.findOneBy({ id });
         if (!order) {
