@@ -51,8 +51,6 @@ export class SupplierController {
         return this.supplierService.removeProduct(Number(id), Number(productId));
     }
 
-
-
     @Put('updatesupplier/:id/:status')
     updateSupplier(
         @Param('id') id: number,
