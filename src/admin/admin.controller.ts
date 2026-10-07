@@ -10,7 +10,7 @@ import { DeliverymanDTO } from "../deliveryman/deliveryman.dto";
 import { OrderEntity } from "../order/order.entity";
 import { Request } from "express";
 import { FileInterceptor } from '@nestjs/platform-express';
-import { MulterError, diskStorage } from 'multer';
+import { createSecureUploadOptions } from "../common/upload-security";
 
 @UseGuards(AuthGuard)
 @Controller('admin')
@@ -50,22 +50,7 @@ export class AdminController {
     }
 
     @Patch(':id')
-    @UseInterceptors(FileInterceptor('photo', {
-        fileFilter: (req, file, cb) => {
-            if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
-                cb(null, true);
-            } else {
-                cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'photo'), false);
-            }
-        },
-        limits: { fileSize: 30 * 1024 * 1024 },
-        storage: diskStorage({
-            destination: './uploads',
-            filename: function (req, file, cb) {
-                cb(null, Date.now() + file.originalname);
-            },
-        }),
-    }))
+    @UseInterceptors(FileInterceptor('photo', createSecureUploadOptions('photo', 10 * 1024 * 1024)))
     patchAdmin(
         @Param('id') id: string,
         @Body() data: Partial<AdminDTO>,
@@ -80,22 +65,7 @@ export class AdminController {
     }
 
     @Post(':id/upload-photo')
-    @UseInterceptors(FileInterceptor('photo', {
-        fileFilter: (req, file, cb) => {
-            if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
-                cb(null, true);
-            } else {
-                cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'photo'), false);
-            }
-        },
-        limits: { fileSize: 30 * 1024 * 1024 },
-        storage: diskStorage({
-            destination: './uploads',
-            filename: function (req, file, cb) {
-                cb(null, Date.now() + file.originalname);
-            },
-        }),
-    }))
+    @UseInterceptors(FileInterceptor('photo', createSecureUploadOptions('photo', 10 * 1024 * 1024)))
     uploadAdminPhoto(
         @Param('id') id: string,
         @Req() req: Request,
