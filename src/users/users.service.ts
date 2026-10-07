@@ -49,7 +49,7 @@ export class UsersService {
             deliverymen: deliverymen,
         };
 
-        await this.redisService.set(cacheKey, result, 30); // Cache for 30s
+        await this.redisService.set(cacheKey, result, 30);
         return result;
     }
 
