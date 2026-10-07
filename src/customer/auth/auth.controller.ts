@@ -3,10 +3,10 @@ import { AuthService } from './auth.service';
 import { CustomerDTO, loginDTO } from '../customer.dto';
 import { ForgotPasswordRequestDto, ResetPasswordWithOtpDto } from '../dto/forgot-password.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { MulterError, diskStorage } from 'multer';
 import * as express from 'express';
 import * as bcrypt from 'bcrypt';
 import { RedisThrottlerGuard, RateLimit } from '../../redis/redis-throttler.guard';
+import { createSecureUploadOptions } from '../../common/upload-security';
 
 @Controller('customer/auth')
 export class AuthController {
@@ -15,24 +15,7 @@ export class AuthController {
     @Post('register')
     @UseGuards(RedisThrottlerGuard)
     @RateLimit({ limit: 5, ttlSeconds: 60, keyPrefix: 'brute_force_register' })
-    @UseInterceptors(FileInterceptor('photo',
-        {
-            fileFilter: (req, file, cb) => {
-                if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/))
-                    cb(null, true);
-                else {
-                    cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'image'), false);
-                }
-            },
-            limits: { fileSize: 30000000 },
-            storage: diskStorage({
-                destination: './uploads',
-                filename: function (req, file, cb) {
-                    cb(null, Date.now() + file.originalname)
-                },
-            })
-        }
-    ))
+    @UseInterceptors(FileInterceptor('photo', createSecureUploadOptions('photo', 10 * 1024 * 1024)))
     @UsePipes(new ValidationPipe)
     async addUser(@Body() myobj: CustomerDTO, @UploadedFile() myfile: Express.Multer.File): Promise<CustomerDTO> {
         if (!myfile?.filename) {
