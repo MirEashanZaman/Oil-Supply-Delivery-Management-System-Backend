@@ -82,7 +82,6 @@ export class AdminController {
         return this.adminService.deleteAdmin(Number(id), (req as any).user.email);
     }
 
-    // Manage Customers
     @Post('customer')
     @UsePipes(new ValidationPipe())
     createCustomer(@Body() data: CustomerDTO) {
@@ -99,7 +98,6 @@ export class AdminController {
         return this.adminService.adminDeleteCustomer(Number(id));
     }
 
-    // Manage Dealers
     @Post('dealer')
     @UsePipes(new ValidationPipe())
     createDealer(@Body() data: DealerDTO) {
@@ -116,7 +114,6 @@ export class AdminController {
         return this.adminService.adminDeleteDealer(Number(id));
     }
 
-    // Manage Suppliers
     @Post('supplier')
     @UsePipes(new ValidationPipe())
     createSupplier(@Body() data: SupplierDTO) {
@@ -133,7 +130,6 @@ export class AdminController {
         return this.adminService.adminDeleteSupplier(Number(id));
     }
 
-    // Manage Deliverymen
     @Post('deliveryman')
     @UsePipes(new ValidationPipe())
     createDeliveryman(@Body() data: DeliverymanDTO) {
@@ -155,7 +151,6 @@ export class AdminController {
         return this.adminService.adminDeleteDeliveryman(Number(id));
     }
 
-    // Manage Orders (Update & Delete only)
     @Patch('order/:id')
     updateOrder(@Param('id') id: string, @Body() data: Partial<OrderEntity>) {
         return this.adminService.adminUpdateOrder(Number(id), data);
