@@ -59,7 +59,6 @@ export class OrderEntity {
     @BeforeInsert()
     generateOrderNumber(): void {
         this.orderNumber = randomUUID();
-        // Generate a 4-digit secure Delivery Confirmation PIN for customer
         this.deliveryOtp = Math.floor(1000 + Math.random() * 9000).toString();
     }
 }
