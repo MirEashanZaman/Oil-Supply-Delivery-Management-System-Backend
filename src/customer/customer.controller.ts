@@ -37,7 +37,6 @@ export class CustomerController {
     @UsePipes(new ValidationPipe())
     @UseInterceptors(FileInterceptor('Image', createSecureUploadOptions('image', 5 * 1024 * 1024)))
     createCustomer(@UploadedFile() file: Express.Multer.File, @Body() customerData: CustomerDTO): Promise<CustomerEntity> {
-        console.log(file?.filename);
         const customer = customerData as CustomerDTO & { username?: string; filename?: string };
         customer.username = customer.userName;
         customer.filename = file?.filename;
@@ -61,7 +60,6 @@ export class CustomerController {
 
     @Put('updatecustomer/:id')
     updateCustomer(@Param('id') id: string, @Body() customerData: CustomerDTO): CustomerDTO {
-        console.log(customerData.userName)
         return this.customerService.updateCustomer(Number(id), customerData);
     }
 
