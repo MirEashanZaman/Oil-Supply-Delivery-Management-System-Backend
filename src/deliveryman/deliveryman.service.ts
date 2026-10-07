@@ -86,6 +86,12 @@ export class DeliverymanService {
         return deliveryman;
     }
 
+    private sanitizeDeliveryman(deliv: any) {
+        if (!deliv) return deliv;
+        const { password, ...safeDeliv } = deliv;
+        return safeDeliv;
+    }
+
     async getDeliverymanById(id: number): Promise<DeliverymanEntity | null> {
         const cacheKey = `deliveryman:id:${id}`;
         try {
@@ -94,12 +100,13 @@ export class DeliverymanService {
         } catch {}
 
         const deliveryman = await this.deliverymanRepo.findOneBy({ id });
-        if (deliveryman) {
+        const safeDeliveryman = this.sanitizeDeliveryman(deliveryman);
+        if (safeDeliveryman) {
             try {
-                await this.redisService.set(cacheKey, JSON.stringify(deliveryman), 60);
+                await this.redisService.set(cacheKey, JSON.stringify(safeDeliveryman), 60);
             } catch {}
         }
-        return deliveryman;
+        return safeDeliveryman as DeliverymanEntity | null;
     }
 
     async getAllDeliverymen(): Promise<DeliverymanEntity[]> {
@@ -110,10 +117,11 @@ export class DeliverymanService {
         } catch {}
 
         const deliverymen = await this.deliverymanRepo.find();
+        const safeDeliverymen = deliverymen.map((d) => this.sanitizeDeliveryman(d));
         try {
-            await this.redisService.set(cacheKey, JSON.stringify(deliverymen), 60);
+            await this.redisService.set(cacheKey, JSON.stringify(safeDeliverymen), 60);
         } catch {}
-        return deliverymen;
+        return safeDeliverymen as DeliverymanEntity[];
     }
 
     async patchDeliveryman(id: number, data: Partial<DeliverymanDTO> & { username?: string }): Promise<DeliverymanEntity> {
