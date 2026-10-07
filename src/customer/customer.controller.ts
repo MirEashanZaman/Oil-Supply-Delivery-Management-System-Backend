@@ -2,10 +2,10 @@ import { Controller, Get, Param, Query, Post, Body, Put, Patch, ValidationPipe, 
 import { CustomerService } from "./customer.service"
 import { CustomerDTO } from "./customer.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { diskStorage, MulterError } from 'multer';
 import type { Response } from 'express';
 import { CustomerEntity } from "./customer.entity";
 import { AuthGuard } from "./auth/auth.guard";
+import { createSecureUploadOptions } from "../common/upload-security";
 
 @Controller('customer')
 @UseGuards(AuthGuard)
@@ -35,23 +35,7 @@ export class CustomerController {
 
     @Post('createcustomer')
     @UsePipes(new ValidationPipe())
-    @UseInterceptors(FileInterceptor('Image', {
-        fileFilter: (req, nidImage, cb) => {
-            if (nidImage.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/))
-                cb(null, true);
-            else {
-                cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'image'), false);
-            }
-        },
-        limits: { fileSize: 2 * 1024 * 1024 },
-        storage: diskStorage({
-            destination: './uploads',
-            filename: function (req, nidImage, cb) {
-                cb(null, Date.now() + nidImage.originalname)
-            },
-        })
-    }))
-
+    @UseInterceptors(FileInterceptor('Image', createSecureUploadOptions('image', 5 * 1024 * 1024)))
     createCustomer(@UploadedFile() file: Express.Multer.File, @Body() customerData: CustomerDTO): Promise<CustomerEntity> {
         console.log(file?.filename);
         const customer = customerData as CustomerDTO & { username?: string; filename?: string };
@@ -112,22 +96,7 @@ export class CustomerController {
     }
 
     @Patch(':id')
-    @UseInterceptors(FileInterceptor('photo', {
-        fileFilter: (req, file, cb) => {
-            if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
-                cb(null, true);
-            } else {
-                cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'photo'), false);
-            }
-        },
-        limits: { fileSize: 30 * 1024 * 1024 },
-        storage: diskStorage({
-            destination: './uploads',
-            filename: function (req, file, cb) {
-                cb(null, Date.now() + file.originalname);
-            },
-        }),
-    }))
+    @UseInterceptors(FileInterceptor('photo', createSecureUploadOptions('photo', 10 * 1024 * 1024)))
     patchCustomer(
         @Param('id') id: string,
         @Body() data: Partial<CustomerDTO>,
@@ -141,22 +110,7 @@ export class CustomerController {
     }
 
     @Post(':id/upload-photo')
-    @UseInterceptors(FileInterceptor('photo', {
-        fileFilter: (req, file, cb) => {
-            if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
-                cb(null, true);
-            } else {
-                cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'photo'), false);
-            }
-        },
-        limits: { fileSize: 30 * 1024 * 1024 },
-        storage: diskStorage({
-            destination: './uploads',
-            filename: function (req, file, cb) {
-                cb(null, Date.now() + file.originalname);
-            },
-        }),
-    }))
+    @UseInterceptors(FileInterceptor('photo', createSecureUploadOptions('photo', 10 * 1024 * 1024)))
     uploadCustomerPhoto(
         @Param('id') id: string,
         @UploadedFile() file?: Express.Multer.File,
