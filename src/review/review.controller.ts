@@ -7,16 +7,19 @@ import {
   ParseIntPipe,
   UsePipes,
   ValidationPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewEntity } from './review.entity';
+import { AuthGuard } from '../customer/auth/auth.guard';
 
 @Controller('review')
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
 
   @Post('submit')
+  @UseGuards(AuthGuard)
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async submitReview(@Body() dto: CreateReviewDto): Promise<ReviewEntity> {
     return this.reviewService.createOrUpdateReview(dto);
