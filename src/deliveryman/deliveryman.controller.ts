@@ -22,6 +22,7 @@ export class DeliverymanController {
     constructor(private readonly deliverymanService: DeliverymanService) { }
 
     @Get('all')
+    @UseGuards(AuthGuard)
     getAllDeliverymen() {
         return this.deliverymanService.getAllDeliverymen();
     }
@@ -46,6 +47,7 @@ export class DeliverymanController {
     }
 
     @Put('location/ping')
+    @UseGuards(AuthGuard)
     updateLocation(
         @Body('deliverymanId') deliverymanId: number,
         @Body('latitude') latitude: number,
@@ -55,6 +57,7 @@ export class DeliverymanController {
     }
 
     @Put('orders/:orderId/accept')
+    @UseGuards(AuthGuard)
     acceptOrder(
         @Param('orderId') orderId: string,
         @Body('deliverymanId') deliverymanId: number,
@@ -63,6 +66,7 @@ export class DeliverymanController {
     }
 
     @Put('orders/:orderId/complete')
+    @UseGuards(AuthGuard)
     completeDelivery(
         @Param('orderId') orderId: string,
         @Body('deliverymanId') deliverymanId: number,
@@ -78,6 +82,7 @@ export class DeliverymanController {
     }
 
     @Patch(':id')
+    @UseGuards(AuthGuard)
     @UseInterceptors(
         FileInterceptor('photo', {
             fileFilter: (req, file, cb) => {
