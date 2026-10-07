@@ -41,7 +41,9 @@ import { RedisModule } from './redis/redis.module';
             type: 'postgres',
             url: process.env.DATABASE_URL,
             autoLoadEntities: true,
-            synchronize: true,
+            synchronize: process.env.DB_SYNCHRONIZE !== undefined
+              ? process.env.DB_SYNCHRONIZE === 'true'
+              : process.env.NODE_ENV !== 'production',
             ssl: process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false },
           }
         : {
@@ -52,7 +54,9 @@ import { RedisModule } from './redis/redis.module';
             password: process.env.DB_PASSWORD || '12345',
             database: process.env.DB_NAME || 'Oil-Supply-Delivery-Management-System',
             autoLoadEntities: true,
-            synchronize: true,
+            synchronize: process.env.DB_SYNCHRONIZE !== undefined
+              ? process.env.DB_SYNCHRONIZE === 'true'
+              : process.env.NODE_ENV !== 'production',
             ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
           },
     ),
