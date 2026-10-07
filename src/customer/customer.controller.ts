@@ -59,7 +59,7 @@ export class CustomerController {
         return this.customerService.deleteOrder(id, orderId);
     }
 
-    @Put('updatecustomer/:id') //use for update data like forget password
+    @Put('updatecustomer/:id')
     updateCustomer(@Param('id') id: string, @Body() customerData: CustomerDTO): CustomerDTO {
         console.log(customerData.userName)
         return this.customerService.updateCustomer(Number(id), customerData);
