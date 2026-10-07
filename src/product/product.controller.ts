@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Put, Patch, Delete, Body, Param, UseInterceptors, UploadedFile, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage, MulterError } from 'multer';
 import { ProductService } from './product.service';
 import { Product } from './product.entity';
 import { AuthGuard } from '../customer/auth/auth.guard';
+import { createSecureUploadOptions } from '../common/upload-security';
 
 @Controller('product')
 export class ProductController {
@@ -11,22 +11,7 @@ export class ProductController {
 
     @Post('create')
     @UseGuards(AuthGuard)
-    @UseInterceptors(FileInterceptor('photo', {
-        fileFilter: (req, file, cb) => {
-            if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
-                cb(null, true);
-            } else {
-                cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'photo'), false);
-            }
-        },
-        limits: { fileSize: 30 * 1024 * 1024 },
-        storage: diskStorage({
-            destination: './uploads',
-            filename: function (req, file, cb) {
-                cb(null, Date.now() + file.originalname);
-            },
-        }),
-    }))
+    @UseInterceptors(FileInterceptor('photo', createSecureUploadOptions('photo', 30 * 1024 * 1024)))
     async createProduct(
         @Body() productData: Partial<Product>,
         @UploadedFile() file?: Express.Multer.File,
