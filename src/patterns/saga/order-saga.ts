@@ -67,7 +67,6 @@ export class OrderFulfillmentSagaOrchestrator {
         ctx.stepExecutionLog.push(`FAIL:${step.stepName}`);
         await this.persistState(ctx);
 
-        // Rollback executed steps in reverse order (Compensating Transactions)
         for (const executedStep of executedSteps.reverse()) {
           try {
             console.log(`[SAGA Orchestrator] Compensating rollback on: ${executedStep.stepName}`);
