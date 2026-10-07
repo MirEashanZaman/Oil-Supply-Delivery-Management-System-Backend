@@ -91,7 +91,7 @@ export class DealerService {
     const cacheKey = `dealer:email:${email}`;
     try {
       const cached = await this.redisService.get(cacheKey);
-      if (cached) return JSON.parse(cached);
+      if (cached) return typeof cached === 'string' ? JSON.parse(cached) : cached;
     } catch {}
 
     const dealer = await this.dealerRepository.findOneBy({ email });
