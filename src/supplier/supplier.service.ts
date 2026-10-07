@@ -33,6 +33,12 @@ export class SupplierService {
         return "Nusrat";
     }
 
+    private sanitizeSupplier(sup: any) {
+        if (!sup) return sup;
+        const { password, ...safeSup } = sup;
+        return safeSup;
+    }
+
     async getAllSupplier(): Promise<SupplierEntity[]> {
         const cacheKey = 'suppliers:all';
         try {
@@ -41,10 +47,11 @@ export class SupplierService {
         } catch {}
 
         const suppliers = await this.SupplierRepository.find();
+        const safeSuppliers = suppliers.map((s) => this.sanitizeSupplier(s));
         try {
-            await this.redisService.set(cacheKey, JSON.stringify(suppliers), 60);
+            await this.redisService.set(cacheKey, JSON.stringify(safeSuppliers), 60);
         } catch {}
-        return suppliers;
+        return safeSuppliers as SupplierEntity[];
     }
 
     getSupplierByID(id: number, userName: string): object {
