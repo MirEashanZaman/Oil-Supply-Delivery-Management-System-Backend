@@ -257,7 +257,6 @@ export class CustomerService {
             await this.deliveryRepository.save(delivery);
         }
 
-        // Notify Observers about order fulfillment status change
         await this.orderSubject.notify(nextStatus === 'delivered' ? 'DELIVERED' : 'CONFIRMED', {
             orderId: order.id as number,
             productName: order.product?.name || 'Petroleum Product',
