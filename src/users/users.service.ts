@@ -24,16 +24,22 @@ export class UsersService {
         private redisService: RedisService,
     ) { }
 
+    private sanitizeUser(user: any) {
+        if (!user) return user;
+        const { password, ...safeUser } = user;
+        return safeUser;
+    }
+
     async getAllUsers() {
         const cacheKey = 'users:all_merged';
         const cached = await this.redisService.get(cacheKey);
         if (cached) return cached;
 
-        const customers = await this.customerRepo.find();
-        const admins = await this.adminRepo.find();
-        const dealers = await this.dealerRepo.find();
-        const suppliers = await this.supplierRepo.find();
-        const deliverymen = await this.deliverymanRepo.find();
+        const customers = (await this.customerRepo.find()).map((u) => this.sanitizeUser(u));
+        const admins = (await this.adminRepo.find()).map((u) => this.sanitizeUser(u));
+        const dealers = (await this.dealerRepo.find()).map((u) => this.sanitizeUser(u));
+        const suppliers = (await this.supplierRepo.find()).map((u) => this.sanitizeUser(u));
+        const deliverymen = (await this.deliverymanRepo.find()).map((u) => this.sanitizeUser(u));
 
         const result = {
             customers: customers,
@@ -48,41 +54,42 @@ export class UsersService {
     }
 
     async searchUserByEmail(email: string) {
-        const cacheKey = `user:email:${email.toLowerCase().trim()}`;
+        const cleanEmail = (email || '').toLowerCase().trim();
+        const cacheKey = `user:email:${cleanEmail}`;
         const cached = await this.redisService.get(cacheKey);
         if (cached) return cached;
 
-        const customer = await this.customerRepo.findOneBy({ email });
+        const customer = await this.customerRepo.findOneBy({ email: cleanEmail });
         if (customer) {
-            const res = { user: customer, role: 'customer' };
+            const res = { user: this.sanitizeUser(customer), role: 'customer' };
             await this.redisService.set(cacheKey, res, 60);
             return res;
         }
 
-        const admin = await this.adminRepo.findOneBy({ email });
+        const admin = await this.adminRepo.findOneBy({ email: cleanEmail });
         if (admin) {
-            const res = { user: admin, role: 'admin' };
+            const res = { user: this.sanitizeUser(admin), role: 'admin' };
             await this.redisService.set(cacheKey, res, 60);
             return res;
         }
 
-        const dealer = await this.dealerRepo.findOneBy({ email });
+        const dealer = await this.dealerRepo.findOneBy({ email: cleanEmail });
         if (dealer) {
-            const res = { user: dealer, role: 'dealer' };
+            const res = { user: this.sanitizeUser(dealer), role: 'dealer' };
             await this.redisService.set(cacheKey, res, 60);
             return res;
         }
 
-        const supplier = await this.supplierRepo.findOneBy({ email });
+        const supplier = await this.supplierRepo.findOneBy({ email: cleanEmail });
         if (supplier) {
-            const res = { user: supplier, role: 'supplier' };
+            const res = { user: this.sanitizeUser(supplier), role: 'supplier' };
             await this.redisService.set(cacheKey, res, 60);
             return res;
         }
 
-        const deliveryman = await this.deliverymanRepo.findOneBy({ email });
+        const deliveryman = await this.deliverymanRepo.findOneBy({ email: cleanEmail });
         if (deliveryman) {
-            const res = { user: deliveryman, role: 'deliveryman' };
+            const res = { user: this.sanitizeUser(deliveryman), role: 'deliveryman' };
             await this.redisService.set(cacheKey, res, 60);
             return res;
         }
