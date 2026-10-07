@@ -2,33 +2,16 @@ import { Body, Controller, Post, UsePipes, UseInterceptors, UploadedFile, Valida
 import { AuthService } from './auth.service';
 import { AdminDTO, loginDTO } from '../admin.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { MulterError, diskStorage } from 'multer';
 import * as express from 'express';
 import * as bcrypt from 'bcrypt';
+import { createSecureUploadOptions } from '../../common/upload-security';
 
 @Controller('admin/auth')
 export class AuthController {
     constructor(private authService: AuthService) { }
 
     @Post('register')
-    @UseInterceptors(FileInterceptor('photo',
-        {
-            fileFilter: (req, file, cb) => {
-                if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/))
-                    cb(null, true);
-                else {
-                    cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'image'), false);
-                }
-            },
-            limits: { fileSize: 30000000 },
-            storage: diskStorage({
-                destination: './uploads',
-                filename: function (req, file, cb) {
-                    cb(null, Date.now() + file.originalname)
-                },
-            })
-        }
-    ))
+    @UseInterceptors(FileInterceptor('photo', createSecureUploadOptions('photo', 10 * 1024 * 1024)))
     @UsePipes(new ValidationPipe)
     async addUser(@Body() myobj: AdminDTO, @UploadedFile() file: Express.Multer.File): Promise<AdminDTO> {
         if (!file?.filename) {
