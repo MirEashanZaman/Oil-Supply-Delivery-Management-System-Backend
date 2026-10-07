@@ -13,33 +13,16 @@ import {
 import { DeliverymanAuthService } from './auth.service';
 import { DeliverymanDTO, loginDTO } from '../deliveryman.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { MulterError, diskStorage } from 'multer';
 import type { Response } from 'express';
 import * as bcrypt from 'bcrypt';
+import { createSecureUploadOptions } from '../../common/upload-security';
 
 @Controller('deliveryman/auth')
 export class DeliverymanAuthController {
     constructor(private authService: DeliverymanAuthService) { }
 
     @Post('register')
-    @UseInterceptors(
-        FileInterceptor('photo', {
-            fileFilter: (req, file, cb) => {
-                if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
-                    cb(null, true);
-                } else {
-                    cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'image'), false);
-                }
-            },
-            limits: { fileSize: 30000000 },
-            storage: diskStorage({
-                destination: './uploads',
-                filename: function (req, file, cb) {
-                    cb(null, Date.now() + file.originalname);
-                },
-            }),
-        }),
-    )
+    @UseInterceptors(FileInterceptor('photo', createSecureUploadOptions('photo', 10 * 1024 * 1024)))
     @UsePipes(new ValidationPipe())
     async addUser(
         @Body() myobj: DeliverymanDTO,
