@@ -90,6 +90,7 @@ export class AppModule {
   configure(consumer: import('@nestjs/common').MiddlewareConsumer) {
     consumer
       .apply(
+        require('./common/xss-sanitizer.middleware').XssSanitizerMiddleware,
         require('./patterns/observability/observability.middleware').ObservabilityMiddleware,
         require('./patterns/rate-limit/rate-limiter.middleware').RateLimiterMiddleware,
       )
