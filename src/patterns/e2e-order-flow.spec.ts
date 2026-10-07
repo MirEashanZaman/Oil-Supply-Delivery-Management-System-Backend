@@ -1,23 +1,14 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { CustomerService } from '../customer/customer.service';
-import { DealerService } from '../dealer/dealer.service';
-import { SupplierService } from '../supplier/supplier.service';
-import { DeliverymanService } from '../deliveryman/deliveryman.service';
 import { OrderFulfillmentSagaOrchestrator, SagaContext } from '../patterns/saga/order-saga';
 import { PaymentStrategyResolver } from '../patterns/strategy/payment-strategy';
-import { GeoProximityService } from '../patterns/geo/geo-proximity.service';
-import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
-import { RedisService } from '../redis/redis.service';
+import { GeoProximityService, PartnerLocation } from '../patterns/geo/geo-proximity.service';
 
 describe('Multi-Party Order Fulfillment End-to-End Workflow Test', () => {
   let sagaOrchestrator: OrderFulfillmentSagaOrchestrator;
   let paymentResolver: PaymentStrategyResolver;
-  let geoService: GeoProximityService;
 
   beforeEach(() => {
     sagaOrchestrator = new OrderFulfillmentSagaOrchestrator();
     paymentResolver = new PaymentStrategyResolver();
-    geoService = new GeoProximityService();
   });
 
   it('should complete the entire multi-party customer order, payment, reservation, and delivery pipeline', async () => {
@@ -39,55 +30,67 @@ describe('Multi-Party Order Fulfillment End-to-End Workflow Test', () => {
 
     // 2. Payment authorization via Card strategy
     const cardStrategy = paymentResolver.resolve('card');
-    const paymentResult = await cardStrategy.processPayment({
-      amount: orderContext.totalAmount,
-      currency: 'USD',
-      customerEmail: 'buyer@energycorp.com',
-      metadata: { orderId: orderContext.orderId },
+    const paymentResult = await cardStrategy.pay(orderContext.totalAmount, {
+      paymentMethod: 'card',
+      cardType: 'Visa Enterprise Corporate',
+      paymentReference: `CARD-TXN-${orderContext.orderId}`,
+      metadata: { orderId: orderContext.orderId, customerId: orderContext.customerId },
     });
-    expect(paymentResult.status).toBe('SUCCESS');
+    expect(paymentResult.success).toBe(true);
     lifecycleEvents.push('PAYMENT_AUTHORIZED');
 
     // 3. Register inventory and depot routing steps in SAGA
     sagaOrchestrator.addStep({
       stepName: 'InventoryReservation',
-      execute: async (ctx) => {
+      execute: async (_ctx) => {
         lifecycleEvents.push('INVENTORY_RESERVED');
-        ctx.status = 'INVENTORY_RESERVED';
       },
-      compensate: async () => {
+      compensate: async (_ctx) => {
         lifecycleEvents.push('INVENTORY_RELEASED');
       },
     });
 
     sagaOrchestrator.addStep({
       stepName: 'SupplierDepotAssignment',
-      execute: async (ctx) => {
+      execute: async (_ctx) => {
         lifecycleEvents.push('SUPPLIER_ASSIGNED');
-        ctx.status = 'PROCESSING';
       },
-      compensate: async () => {
+      compensate: async (_ctx) => {
         lifecycleEvents.push('SUPPLIER_UNASSIGNED');
       },
     });
 
     sagaOrchestrator.addStep({
       stepName: 'DeliverymanDispatch',
-      execute: async (ctx) => {
-        // Geolocation calculation for nearest delivery tanker
-        const tankerLocations = [
-          { id: 1, name: 'Tanker Lorry A', role: 'deliveryman' as const, latitude: 22.3350, longitude: 91.8320 },
-          { id: 2, name: 'Tanker Lorry B', role: 'deliveryman' as const, latitude: 23.8103, longitude: 90.4125 },
+      execute: async (_ctx) => {
+        // Geolocation calculation for nearest supplier/dealer depot
+        const tankerPartners: PartnerLocation[] = [
+          {
+            id: 1,
+            name: 'Chittagong Port Refinery Terminal',
+            role: 'Supplier',
+            email: 'refinery@chittagong.gov',
+            address: 'Port Zone, Chittagong',
+            coordinates: { latitude: 22.3560, longitude: 91.7830 },
+          },
+          {
+            id: 2,
+            name: 'Dhaka Central Fuel Depot',
+            role: 'Dealer',
+            email: 'central@dhakaoil.com',
+            address: 'Kuril, Dhaka',
+            coordinates: { latitude: 23.8103, longitude: 90.4125 },
+          },
         ];
-        const target = { latitude: 22.3360, longitude: 91.8330 };
-        const nearest = geoService.findNearestPartners(target, tankerLocations, 100);
 
-        expect(nearest.length).toBeGreaterThan(0);
-        expect(nearest[0].partner.id).toBe(1);
-        lifecycleEvents.push(`DELIVERY_DISPATCHED_TANKER_${nearest[0].partner.id}`);
-        ctx.status = 'OUT_FOR_DELIVERY';
+        const target = GeoProximityService.geocodeAddress(orderContext.deliveryAddress);
+        const nearby = GeoProximityService.findNearbyPartners(target, tankerPartners, 100);
+
+        expect(nearby.length).toBeGreaterThan(0);
+        expect(nearby[0].id).toBe(1);
+        lifecycleEvents.push(`DELIVERY_DISPATCHED_DEPOT_${nearby[0].id}`);
       },
-      compensate: async () => {
+      compensate: async (_ctx) => {
         lifecycleEvents.push('DISPATCH_CANCELLED');
       },
     });
@@ -102,7 +105,51 @@ describe('Multi-Party Order Fulfillment End-to-End Workflow Test', () => {
       'PAYMENT_AUTHORIZED',
       'INVENTORY_RESERVED',
       'SUPPLIER_ASSIGNED',
-      'DELIVERY_DISPATCHED_TANKER_1',
+      'DELIVERY_DISPATCHED_DEPOT_1',
     ]);
+  });
+
+  it('should trigger compensating rollback transactions when a saga step fails', async () => {
+    const compensationEvents: string[] = [];
+
+    const failedOrderContext: SagaContext = {
+      orderId: 9002,
+      customerId: 11,
+      productId: 2,
+      quantity: 100,
+      unitPrice: 85.00,
+      totalAmount: 8500.00,
+      deliveryAddress: 'Mirpur Logistics Hub',
+      paymentMethod: 'bank',
+      status: 'PENDING',
+    };
+
+    sagaOrchestrator.addStep({
+      stepName: 'ReserveRefineryTank',
+      execute: async () => {
+        compensationEvents.push('TANK_RESERVED');
+      },
+      compensate: async () => {
+        compensationEvents.push('TANK_RELEASED');
+      },
+    });
+
+    sagaOrchestrator.addStep({
+      stepName: 'AssignDeliveryFleet',
+      execute: async () => {
+        throw new Error('Fleet unavailable due to route maintenance');
+      },
+      compensate: async () => {
+        compensationEvents.push('FLEET_NOTIFICATION_CANCELLED');
+      },
+    });
+
+    await expect(sagaOrchestrator.execute(failedOrderContext)).rejects.toThrow(
+      'Fleet unavailable due to route maintenance',
+    );
+
+    expect(failedOrderContext.status).toBe('COMPENSATED');
+    expect(compensationEvents).toContain('TANK_RESERVED');
+    expect(compensationEvents).toContain('TANK_RELEASED');
   });
 });
