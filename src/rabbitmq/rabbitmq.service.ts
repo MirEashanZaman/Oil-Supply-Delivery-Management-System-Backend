@@ -33,7 +33,6 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
       this.connection = await amqp.connect(this.rabbitUrl);
       this.channel = await this.connection.createChannel();
       
-      // Ensure primary queues are declared and durable
       await this.channel.assertQueue(this.defaultQueue, { durable: true });
       await this.channel.assertQueue('order_notifications_queue', { durable: true });
       await this.channel.assertQueue('customer_messages_queue', { durable: true });
@@ -41,7 +40,6 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
       this.isConnected = true;
       this.logger.log(`[RabbitMQ] Connected successfully. Active Queue: ${this.defaultQueue}`);
       
-      // Start consumers
       this.listenToQueue(this.defaultQueue);
       this.listenToQueue('order_notifications_queue');
       this.listenToQueue('customer_messages_queue');
@@ -58,13 +56,9 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
       if (this.channel) await this.channel.close();
       if (this.connection) await this.connection.close();
     } catch {
-      // ignore on teardown
     }
   }
 
-  /**
-   * Publish a message to RabbitMQ queue with persistent buffering
-   */
   async sendMessage(queueName: string, pattern: string, data: any, sender?: string, recipient?: string): Promise<boolean> {
     const payload: RabbitMessagePayload = {
       pattern,
@@ -89,15 +83,11 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
       }
     }
 
-    // High availability in-memory buffer fallback
     this.memoryQueue.push(payload);
     this.logger.log(`[RabbitMQ In-Memory Bus] Message enqueued -> Pattern: [${pattern}] for ${recipient || 'all'}`);
     return true;
   }
 
-  /**
-   * Consume and process incoming messages from RabbitMQ queue
-   */
   private async listenToQueue(queueName: string) {
     if (!this.channel) return;
     try {
@@ -121,7 +111,6 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
 
   private handleMessage(payload: RabbitMessagePayload) {
     this.logger.log(`[RabbitMQ Dispatcher] Executing worker task for: ${payload.pattern}`);
-    // Handled worker tasks: notification dispatch, email alert triggers, order lifecycle logs
   }
 
   getQueueStatus() {
