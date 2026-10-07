@@ -12,11 +12,9 @@ export class PaymentEntity {
     @Column({ type: 'double precision', nullable: true })
     amount?: number;
 
-    // Cash Payment Details
     @Column({ type: 'double precision', nullable: true })
     cashTenderer?: number;
 
-    // Card Payment Details
     @Column({ nullable: true })
     cardNumber?: string;
 
