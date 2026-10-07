@@ -103,6 +103,12 @@ export class DealerService {
     return dealer;
   }
 
+  private sanitizeDealer(dealer: any) {
+    if (!dealer) return dealer;
+    const { password, ...safeDealer } = dealer;
+    return safeDealer;
+  }
+
   async getAllDealers(): Promise<Dealer[]> {
     const cacheKey = 'dealers:all';
     try {
@@ -111,10 +117,11 @@ export class DealerService {
     } catch {}
 
     const dealers = await this.dealerRepository.find();
+    const safeDealers = dealers.map((d) => this.sanitizeDealer(d));
     try {
-      await this.redisService.set(cacheKey, JSON.stringify(dealers), 60);
+      await this.redisService.set(cacheKey, JSON.stringify(safeDealers), 60);
     } catch {}
-    return dealers;
+    return safeDealers as Dealer[];
   }
 
   async placeOrder(orderData: any, dealerEmail: string): Promise<any> {
