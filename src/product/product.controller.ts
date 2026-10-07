@@ -1,14 +1,16 @@
-import { Controller, Get, Post, Put, Patch, Delete, Body, Param, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Body, Param, UseInterceptors, UploadedFile, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage, MulterError } from 'multer';
 import { ProductService } from './product.service';
 import { Product } from './product.entity';
+import { AuthGuard } from '../customer/auth/auth.guard';
 
 @Controller('product')
 export class ProductController {
     constructor(private readonly productService: ProductService) { }
 
     @Post('create')
+    @UseGuards(AuthGuard)
     @UseInterceptors(FileInterceptor('photo', {
         fileFilter: (req, file, cb) => {
             if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/i)) {
@@ -42,31 +44,37 @@ export class ProductController {
     }
 
     @Put('update-price/:id')
+    @UseGuards(AuthGuard)
     async updatePrice(@Param('id') id: string, @Body('price') price: number) {
         return this.productService.updatePrice(Number(id), price);
     }
 
     @Put('update-stock/:id')
+    @UseGuards(AuthGuard)
     async updateStock(@Param('id') id: string, @Body('stock') stock: number) {
         return this.productService.updateStock(Number(id), stock);
     }
 
     @Patch('patch-stock/:id')
+    @UseGuards(AuthGuard)
     async patchStock(@Param('id') id: string, @Body('stock') stock: number) {
         return this.productService.updateStock(Number(id), stock);
     }
 
     @Post('add-category')
+    @UseGuards(AuthGuard)
     async addProductToCategory(@Body('productId') productId: number, @Body('categoryId') categoryId: number) {
         return this.productService.addProductToCategory(productId, categoryId);
     }
 
     @Delete('remove-category/:productId/:categoryId')
+    @UseGuards(AuthGuard)
     async removeProductFromCategory(@Param('productId') productId: string, @Param('categoryId') categoryId: string) {
         return this.productService.removeProductFromCategory(Number(productId), Number(categoryId));
     }
 
     @Delete(':id')
+    @UseGuards(AuthGuard)
     async deleteProduct(@Param('id') id: string) {
         return this.productService.deleteProduct(Number(id));
     }
