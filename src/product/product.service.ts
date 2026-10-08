@@ -51,7 +51,7 @@ export class ProductService {
         try {
             const cached = await this.redisService.get(this.PRODUCTS_CACHE_KEY);
             if (cached) {
-                return JSON.parse(cached);
+                return typeof cached === 'string' ? JSON.parse(cached) : cached;
             }
         } catch {}
 
