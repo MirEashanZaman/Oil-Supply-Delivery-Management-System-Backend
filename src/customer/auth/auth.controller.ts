@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Get, Param, UsePipes, UseInterceptors, UploadedFile, ValidationPipe, Res, BadRequestException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Get, Param, UsePipes, UseInterceptors, UploadedFile, ValidationPipe, Res, BadRequestException, UseGuards, HttpException, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CustomerDTO, loginDTO } from '../customer.dto';
 import { ForgotPasswordRequestDto, ResetPasswordWithOtpDto } from '../dto/forgot-password.dto';
@@ -41,17 +41,27 @@ export class AuthController {
         @Body() logindata: loginDTO,
         @Res({ passthrough: true }) res: express.Response,
     ) {
-        const result = await this.authService.signIn(logindata);
+        try {
+            const result = await this.authService.signIn(logindata);
 
-        const isProd = process.env.NODE_ENV === 'production';
-        res.cookie("access_token", result.access_token, {
-            httpOnly: true,
-            sameSite: isProd ? "none" : "lax",
-            secure: isProd,
-            path: "/",
-            maxAge: 30 * 60 * 1000,
-        });
-        return { message: 'Login successful', access_token: result.access_token };
+            const isProd = process.env.NODE_ENV === 'production';
+            res.cookie("access_token", result.access_token, {
+                httpOnly: true,
+                sameSite: isProd ? "none" : "lax",
+                secure: isProd,
+                path: "/",
+                maxAge: 30 * 60 * 1000,
+            });
+            return { message: 'Login successful', access_token: result.access_token };
+        } catch (err: any) {
+            if (err instanceof HttpException) {
+                throw err;
+            }
+            throw new HttpException(
+                { statusCode: 401, message: err?.message || 'Invalid credentials' },
+                HttpStatus.UNAUTHORIZED,
+            );
+        }
     }
 
     @Post('forgot-password')
