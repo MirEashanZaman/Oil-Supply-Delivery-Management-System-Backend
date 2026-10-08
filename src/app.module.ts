@@ -1,11 +1,11 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CustomerModule } from './customer/customer.module';
 import { SupplierModule } from './supplier/supplier.module';
 import { DealerModule } from './dealer/dealer.module';
 import { AdminModule } from './admin/admin.module';
-import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './customer/auth/auth.module';
 import { AuthModule as AdminAuthModule } from './admin/auth/auth.module';
 import { AuthModule as DealerAuthModule } from './dealer/auth/auth.module';
@@ -20,7 +20,9 @@ import { DeliverymanModule } from './deliveryman/deliveryman.module';
 import { DeliverymanAuthModule } from './deliveryman/auth/auth.module';
 import { RabbitMQModule } from './rabbitmq/rabbitmq.module';
 import { RedisModule } from './redis/redis.module';
-
+import { XssSanitizerMiddleware } from './common/xss-sanitizer.middleware';
+import { ObservabilityMiddleware } from './patterns/observability/observability.middleware';
+import { RateLimiterMiddleware } from './patterns/rate-limit/rate-limiter.middleware';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 
@@ -86,13 +88,13 @@ import { APP_GUARD } from '@nestjs/core';
     },
   ],
 })
-export class AppModule {
-  configure(consumer: import('@nestjs/common').MiddlewareConsumer) {
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(
-        require('./common/xss-sanitizer.middleware').XssSanitizerMiddleware,
-        require('./patterns/observability/observability.middleware').ObservabilityMiddleware,
-        require('./patterns/rate-limit/rate-limiter.middleware').RateLimiterMiddleware,
+        XssSanitizerMiddleware,
+        ObservabilityMiddleware,
+        RateLimiterMiddleware,
       )
       .forRoutes('*');
   }
