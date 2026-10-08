@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import sanitizeHtml = require('sanitize-html');
+import * as sanitizeHtml from 'sanitize-html';
 
 @Injectable()
 export class XssSanitizerMiddleware implements NestMiddleware {
@@ -21,10 +21,13 @@ export class XssSanitizerMiddleware implements NestMiddleware {
     if (obj === null || obj === undefined) return obj;
 
     if (typeof obj === 'string') {
-      return sanitizeHtml(obj, {
-        allowedTags: [],
-        allowedAttributes: {},
-      });
+      const sanitizer = (sanitizeHtml as any).default || sanitizeHtml;
+      return typeof sanitizer === 'function'
+        ? sanitizer(obj, {
+            allowedTags: [],
+            allowedAttributes: {},
+          })
+        : obj;
     }
 
     if (Array.isArray(obj)) {
