@@ -6,15 +6,37 @@ import * as sanitizeHtml from 'sanitize-html';
 export class XssSanitizerMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction): void {
     if (req.body && typeof req.body === 'object') {
-      req.body = this.sanitizeObject(req.body);
+      try {
+        this.sanitizeInPlace(req.body);
+      } catch {}
     }
     if (req.query && typeof req.query === 'object') {
-      req.query = this.sanitizeObject(req.query);
+      try {
+        this.sanitizeInPlace(req.query);
+      } catch {}
     }
     if (req.params && typeof req.params === 'object') {
-      req.params = this.sanitizeObject(req.params);
+      try {
+        this.sanitizeInPlace(req.params);
+      } catch {}
     }
     next();
+  }
+
+  private sanitizeInPlace(obj: any): void {
+    if (!obj || typeof obj !== 'object') return;
+    for (const key of Object.keys(obj)) {
+      if (key.toLowerCase().includes('password')) continue;
+      const val = obj[key];
+      if (typeof val === 'string') {
+        const sanitizer = (sanitizeHtml as any).default || sanitizeHtml;
+        if (typeof sanitizer === 'function') {
+          obj[key] = sanitizer(val, { allowedTags: [], allowedAttributes: {} });
+        }
+      } else if (typeof val === 'object' && val !== null) {
+        this.sanitizeInPlace(val);
+      }
+    }
   }
 
   private sanitizeObject(obj: any): any {
