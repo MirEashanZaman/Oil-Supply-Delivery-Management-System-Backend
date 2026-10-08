@@ -82,7 +82,7 @@ export class CustomerService {
         const cacheKey = 'customers:all';
         try {
             const cached = await this.redisService.get(cacheKey);
-            if (cached) return JSON.parse(cached);
+            if (cached) return typeof cached === 'string' ? JSON.parse(cached) : cached;
         } catch {}
 
         const customers = await this.customerRepository.find({
@@ -106,7 +106,7 @@ export class CustomerService {
         const cacheKey = `customer:id:${id}`;
         try {
             const cached = await this.redisService.get(cacheKey);
-            if (cached) return JSON.parse(cached);
+            if (cached) return typeof cached === 'string' ? JSON.parse(cached) : cached;
         } catch {}
 
         const customer = await this.customerRepository.findOneBy({ id });
@@ -280,7 +280,7 @@ export class CustomerService {
         const cacheKey = `customer:username:${username}`;
         try {
             const cached = await this.redisService.get(cacheKey);
-            if (cached) return JSON.parse(cached);
+            if (cached) return typeof cached === 'string' ? JSON.parse(cached) : cached;
         } catch {}
 
         const customer = await this.customerRepository.findOneBy({ username });
