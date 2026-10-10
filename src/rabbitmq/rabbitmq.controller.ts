@@ -38,4 +38,12 @@ export class RabbitMQController {
   getStatus() {
     return this.rabbitService.getQueueStatus();
   }
+
+  @Get('messages')
+  getMessages() {
+    return {
+      success: true,
+      data: this.rabbitService.getStoredMessages(),
+    };
+  }
 }
