@@ -19,7 +19,6 @@ export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
 
   @Post('submit')
-  @UseGuards(AuthGuard)
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async submitReview(@Body() dto: CreateReviewDto): Promise<ReviewEntity> {
     return this.reviewService.createOrUpdateReview(dto);
