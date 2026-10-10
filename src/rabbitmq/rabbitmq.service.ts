@@ -122,4 +122,10 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
       recentMessages: this.memoryQueue.slice(-10),
     };
   }
+
+  getStoredMessages(): any[] {
+    return this.memoryQueue
+      .filter((m) => m.pattern === 'chat.message.created' && m.data)
+      .map((m) => m.data);
+  }
 }
