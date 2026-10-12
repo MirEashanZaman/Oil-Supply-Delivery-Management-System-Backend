@@ -453,7 +453,6 @@ describe('Enterprise Software Architecture & Design Patterns Suite', () => {
       });
 
       const trail = auditManager.getAuditTrail();
-      // Simulate illicit data manipulation
       trail[0].payload = { maliciousInjection: true };
 
       const verification = auditManager.verifyChainIntegrity();
