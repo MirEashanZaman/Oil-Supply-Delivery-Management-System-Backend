@@ -180,7 +180,6 @@ export class AdminService {
         return this.adminRepo.findOneBy({ id });
     }
 
-    // Customer CRUD
     async adminCreateCustomer(data: CustomerDTO): Promise<CustomerEntity> {
         const existing = await this.customerRepo.findOneBy({ email: data.email as string });
         if (existing) {
