@@ -161,7 +161,6 @@ export class DeliverymanService {
             },
         });
 
-        // Filter orders that are either unassigned or in a state that deliverymen can accept
         const activeOrders = orders.filter((o) => {
             const st = (o.status || 'pending').toLowerCase();
             return (
@@ -302,7 +301,6 @@ export class DeliverymanService {
             throw new BadRequestException('You are not the assigned deliveryman for this order');
         }
 
-        // Validate OTP if provided
         if (proofData?.otp && order.deliveryOtp && proofData.otp.trim() !== order.deliveryOtp.trim()) {
             throw new BadRequestException('Invalid Delivery PIN provided. Please check the 4-digit PIN with the customer.');
         }
@@ -318,7 +316,6 @@ export class DeliverymanService {
             order.deliveryman = deliveryman;
             order.deliverymanId = deliveryman.id;
 
-            // Calculate driver payout fee: Base $25 + $2.50 per quantity unit
             const tripPayout = 25.0 + (Number(order.quantity || 1) * 2.50);
             deliveryman.totalEarnings = Number((deliveryman.totalEarnings || 0) + tripPayout);
             deliveryman.completedDeliveriesCount = (deliveryman.completedDeliveriesCount || 0) + 1;
