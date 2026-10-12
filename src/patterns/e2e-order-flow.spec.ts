@@ -14,7 +14,6 @@ describe('Multi-Party Order Fulfillment End-to-End Workflow Test', () => {
   it('should complete the entire multi-party customer order, payment, reservation, and delivery pipeline', async () => {
     const lifecycleEvents: string[] = [];
 
-    // 1. Customer initiates bulk order
     const orderContext: SagaContext = {
       orderId: 9001,
       customerId: 10,
@@ -28,7 +27,6 @@ describe('Multi-Party Order Fulfillment End-to-End Workflow Test', () => {
     };
     lifecycleEvents.push('ORDER_CREATED');
 
-    // 2. Payment authorization via Card strategy
     const cardStrategy = paymentResolver.resolve('card');
     const paymentResult = await cardStrategy.pay(orderContext.totalAmount, {
       paymentMethod: 'card',
@@ -39,7 +37,6 @@ describe('Multi-Party Order Fulfillment End-to-End Workflow Test', () => {
     expect(paymentResult.success).toBe(true);
     lifecycleEvents.push('PAYMENT_AUTHORIZED');
 
-    // 3. Register inventory and depot routing steps in SAGA
     sagaOrchestrator.addStep({
       stepName: 'InventoryReservation',
       execute: async (_ctx) => {
@@ -63,7 +60,6 @@ describe('Multi-Party Order Fulfillment End-to-End Workflow Test', () => {
     sagaOrchestrator.addStep({
       stepName: 'DeliverymanDispatch',
       execute: async (_ctx) => {
-        // Geolocation calculation for nearest supplier/dealer depot
         const tankerPartners: PartnerLocation[] = [
           {
             id: 1,
@@ -95,11 +91,9 @@ describe('Multi-Party Order Fulfillment End-to-End Workflow Test', () => {
       },
     });
 
-    // 4. Execute Saga pipeline
     const finalContext = await sagaOrchestrator.execute(orderContext);
     expect(finalContext.status).toBe('SUCCESS');
 
-    // 5. Verify full event chain
     expect(lifecycleEvents).toEqual([
       'ORDER_CREATED',
       'PAYMENT_AUTHORIZED',
