@@ -5,3 +5,5 @@ dist
 uploads/*
 !uploads/.gitkeep
 npm-debug.log*
+*.tsbuildinfo
+*.sql
