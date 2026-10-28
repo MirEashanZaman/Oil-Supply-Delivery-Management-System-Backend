@@ -44,7 +44,7 @@ export class CustomerEntity {
     @Column({ nullable: true, default: 'Receiving Depot Supervisor' })
     emergencyContact?: string;
 
-    @CreateDateColumn({ type: 'timestamp', nullable: true })
+    @CreateDateColumn({ nullable: true })
     joiningDate?: Date;
 
     @ManyToOne(() => AdminEntity, admin => admin.customers, { nullable: true })
