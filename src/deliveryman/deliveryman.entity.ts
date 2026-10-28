@@ -9,7 +9,7 @@ export class DeliverymanEntity {
     @PrimaryGeneratedColumn({ unsigned: true })
     id?: number;
 
-    @Column({ type: 'enum', enum: ['active', 'inactive', 'pending_approval'], default: 'pending_approval' })
+    @Column({ type: 'varchar', default: 'pending_approval' })
     status?: string;
 
     @Column({ unique: true })
@@ -64,7 +64,7 @@ export class DeliverymanEntity {
     @Column({ type: 'double precision', nullable: true })
     currentLongitude?: number;
 
-    @CreateDateColumn({ type: 'timestamp', nullable: true })
+    @CreateDateColumn({ nullable: true })
     joiningDate?: Date;
 
     @ManyToOne(() => AdminEntity, admin => admin.deliverymen, { nullable: true })
