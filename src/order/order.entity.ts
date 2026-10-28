@@ -53,7 +53,7 @@ export class OrderEntity {
     @Column({ nullable: true })
     meterReadingPhoto?: string;
 
-    @Column({ nullable: true, type: 'timestamp' })
+    @Column({ nullable: true })
     deliveredAt?: Date;
 
     @BeforeInsert()
