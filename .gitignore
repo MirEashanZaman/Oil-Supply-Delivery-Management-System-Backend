@@ -122,3 +122,4 @@ coverage/
 .claude-flow
 .agents
 *.tsbuildinfo
+*.sql
