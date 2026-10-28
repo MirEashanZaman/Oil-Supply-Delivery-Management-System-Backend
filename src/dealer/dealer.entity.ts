@@ -48,7 +48,7 @@ export class Dealer {
     @Column({ type: 'double precision', nullable: true, default: 250000.0 })
     creditLimit?: number;
 
-    @CreateDateColumn({ type: 'timestamp', nullable: true })
+    @CreateDateColumn({ nullable: true })
     joiningDate?: Date;
 
     @ManyToOne(() => AdminEntity, admin => admin.dealers, { nullable: true })
