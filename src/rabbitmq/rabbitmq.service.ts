@@ -31,7 +31,23 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
     try {
       this.logger.log(`Connecting to RabbitMQ Broker at: ${this.rabbitUrl}...`);
       this.connection = await amqp.connect(this.rabbitUrl);
+
+      this.connection.on('error', (err: any) => {
+        this.logger.warn(`[RabbitMQ] Connection error: ${err.message}`);
+        this.isConnected = false;
+      });
+      this.connection.on('close', () => {
+        this.logger.warn('[RabbitMQ] Connection closed. Falling back to In-Memory mode.');
+        this.isConnected = false;
+      });
+
       this.channel = await this.connection.createChannel();
+      this.channel.on('error', (err: any) => {
+        this.logger.warn(`[RabbitMQ] Channel error: ${err.message}`);
+      });
+      this.channel.on('close', () => {
+        this.logger.warn('[RabbitMQ] Channel closed.');
+      });
       
       await this.channel.assertQueue(this.defaultQueue, { durable: true });
       await this.channel.assertQueue('order_notifications_queue', { durable: true });
