@@ -52,6 +52,8 @@ import { APP_GUARD } from '@nestjs/core';
             type: 'postgres',
             url: process.env.DATABASE_URL,
             autoLoadEntities: true,
+            retryAttempts: 10,
+            retryDelay: 3000,
             synchronize: process.env.DB_SYNCHRONIZE !== undefined
               ? process.env.DB_SYNCHRONIZE === 'true'
               : process.env.NODE_ENV !== 'production',
@@ -65,6 +67,8 @@ import { APP_GUARD } from '@nestjs/core';
             password: process.env.DB_PASSWORD || '12345',
             database: process.env.DB_NAME || 'Oil-Supply-Delivery-Management-System',
             autoLoadEntities: true,
+            retryAttempts: 10,
+            retryDelay: 3000,
             synchronize: process.env.DB_SYNCHRONIZE !== undefined
               ? process.env.DB_SYNCHRONIZE === 'true'
               : process.env.NODE_ENV !== 'production',
