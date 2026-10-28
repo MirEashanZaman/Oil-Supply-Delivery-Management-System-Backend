@@ -43,10 +43,10 @@ export class AdminEntity {
     @Column({ type: 'boolean', nullable: true, default: true })
     twoFactorAuthEnabled?: boolean;
 
-    @Column({ type: 'timestamp', nullable: true })
+    @Column({ nullable: true })
     lastSecurityAuditDate?: Date;
 
-    @CreateDateColumn({ type: 'timestamp', nullable: true })
+    @CreateDateColumn({ nullable: true })
     joiningDate?: Date;
 
     @OneToMany(() => Product, product => product.admin)
