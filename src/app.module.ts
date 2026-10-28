@@ -6,6 +6,7 @@ import { SupplierModule } from './supplier/supplier.module';
 import { DealerModule } from './dealer/dealer.module';
 import { AdminModule } from './admin/admin.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { AuthModule } from './customer/auth/auth.module';
 import { AuthModule as AdminAuthModule } from './admin/auth/auth.module';
 import { AuthModule as DealerAuthModule } from './dealer/auth/auth.module';
@@ -46,35 +47,88 @@ import { APP_GUARD } from '@nestjs/core';
     DeliveryModule,
     DeliverymanModule,
     ReviewModule,
-    TypeOrmModule.forRoot(
-      process.env.DATABASE_URL
-        ? {
-            type: 'postgres',
-            url: process.env.DATABASE_URL,
-            autoLoadEntities: true,
-            retryAttempts: 10,
-            retryDelay: 3000,
-            synchronize: process.env.DB_SYNCHRONIZE !== undefined
-              ? process.env.DB_SYNCHRONIZE === 'true'
-              : process.env.NODE_ENV !== 'production',
-            ssl: process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false },
+    TypeOrmModule.forRootAsync({
+      useFactory: () =>
+        process.env.DATABASE_URL
+          ? {
+              type: 'postgres',
+              url: process.env.DATABASE_URL,
+              autoLoadEntities: true,
+              manualInitialization: true,
+              synchronize:
+                process.env.DB_SYNCHRONIZE !== undefined
+                  ? process.env.DB_SYNCHRONIZE === 'true'
+                  : process.env.NODE_ENV !== 'production',
+              ssl:
+                process.env.DB_SSL === 'false'
+                  ? false
+                  : { rejectUnauthorized: false },
+            }
+          : {
+              type: 'postgres',
+              host: process.env.DB_HOST || 'localhost',
+              port: Number(process.env.DB_PORT) || 5432,
+              username: process.env.DB_USERNAME || 'postgres',
+              password: process.env.DB_PASSWORD || '12345',
+              database:
+                process.env.DB_NAME ||
+                'Oil-Supply-Delivery-Management-System',
+              autoLoadEntities: true,
+              manualInitialization: true,
+              synchronize:
+                process.env.DB_SYNCHRONIZE !== undefined
+                  ? process.env.DB_SYNCHRONIZE === 'true'
+                  : process.env.NODE_ENV !== 'production',
+              ssl:
+                process.env.DB_SSL === 'true'
+                  ? { rejectUnauthorized: false }
+                  : false,
+            },
+      dataSourceFactory: async (options) => {
+        const dataSource = new DataSource(options!);
+        const tryInitialize = async () => {
+          try {
+            if (!dataSource.isInitialized) {
+              await dataSource.initialize();
+            }
+            return true;
+          } catch (err: any) {
+            const msg = String(err?.message || '');
+            if (msg.includes('does not support SSL')) {
+              dataSource.setOptions({ ssl: false } as any);
+              try {
+                await dataSource.initialize();
+                return true;
+              } catch {}
+            }
+            if ((options as any)?.synchronize) {
+              dataSource.setOptions({ synchronize: false });
+              try {
+                await dataSource.initialize();
+                return true;
+              } catch {}
+            }
+            console.warn(
+              `[TypeORM] Database connection deferred (${msg || 'offline'}). Continuing startup.`,
+            );
+            return false;
           }
-        : {
-            type: 'postgres',
-            host: process.env.DB_HOST || 'localhost',
-            port: Number(process.env.DB_PORT) || 5432,
-            username: process.env.DB_USERNAME || 'postgres',
-            password: process.env.DB_PASSWORD || '12345',
-            database: process.env.DB_NAME || 'Oil-Supply-Delivery-Management-System',
-            autoLoadEntities: true,
-            retryAttempts: 10,
-            retryDelay: 3000,
-            synchronize: process.env.DB_SYNCHRONIZE !== undefined
-              ? process.env.DB_SYNCHRONIZE === 'true'
-              : process.env.NODE_ENV !== 'production',
-            ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
-          },
-    ),
+        };
+
+        const connected = await tryInitialize();
+        if (!connected) {
+          const retryInBackground = (attempt = 1) => {
+            if (dataSource.isInitialized || attempt > 20) return;
+            setTimeout(async () => {
+              const ok = await tryInitialize();
+              if (!ok) retryInBackground(attempt + 1);
+            }, 5000);
+          };
+          retryInBackground();
+        }
+        return dataSource;
+      },
+    }),
     AuthModule,
     AdminAuthModule,
     DealerAuthModule,
