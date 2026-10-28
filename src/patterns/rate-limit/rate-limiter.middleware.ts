@@ -27,6 +27,9 @@ export class RateLimiterMiddleware implements NestMiddleware {
       '127.0.0.1';
 
     const path = req.originalUrl || req.url || '';
+    if (path === '/' || path.startsWith('/health')) {
+      return next();
+    }
     const isAuthRoute =
       path.includes('/login') ||
       path.includes('/auth') ||
