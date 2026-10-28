@@ -86,6 +86,20 @@ async function bootstrap() {
     credentials: true,
   });
 
-  await app.listen(Number(process.env.PORT) || 8000, '0.0.0.0');
+  const port = Number(process.env.PORT) || 8000;
+  await app.listen(port, '0.0.0.0');
+  console.log(`Application is running on port: ${port}`);
 }
-bootstrap();
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[Process] Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('[Process] Uncaught Exception:', err);
+});
+
+bootstrap().catch((err) => {
+  console.error('[Bootstrap] Fatal startup error:', err);
+  process.exit(1);
+});
