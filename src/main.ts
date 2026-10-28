@@ -4,6 +4,7 @@ import { Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import { existsSync, mkdirSync } from 'fs';
 import helmet from 'helmet';
 import * as express from 'express';
 import cookieParser = require('cookie-parser');
@@ -50,7 +51,11 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
-  app.useStaticAssets(join(process.cwd(), 'uploads'), {
+  const uploadsDir = join(process.cwd(), 'uploads');
+  if (!existsSync(uploadsDir)) {
+    mkdirSync(uploadsDir, { recursive: true });
+  }
+  app.useStaticAssets(uploadsDir, {
     prefix: '/uploads/',
   });
 
