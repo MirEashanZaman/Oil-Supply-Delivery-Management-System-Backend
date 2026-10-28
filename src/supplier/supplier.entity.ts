@@ -10,7 +10,7 @@ import { DeliveryEntity } from '../delivery/delivery.entity';
 export class SupplierEntity {
     @PrimaryGeneratedColumn({ unsigned: true })
     id?: number;
-    @Column({ type: 'enum', enum: ['active', 'inactive'], default: 'active' })
+    @Column({ type: 'varchar', default: 'active' })
     status?: string;
 
     @Column({ unique: true })
@@ -50,7 +50,7 @@ export class SupplierEntity {
     @Column({ nullable: true, default: 'ISO 9001:2015 & ASTM-D Verified' })
     isoCertification?: string;
 
-    @CreateDateColumn({ type: 'timestamp', nullable: true })
+    @CreateDateColumn({ nullable: true })
     joiningDate?: Date;
 
     @ManyToOne(() => AdminEntity, admin => admin.suppliers, { nullable: true })
