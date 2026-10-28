@@ -7,7 +7,7 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "ts-node src/main.ts",
+    "start": "node dist/main.js",
     "start:dev": "ts-node src/main.ts",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main.js",
@@ -25,7 +25,7 @@
   },
   "engines": {
     "npm": ">=10.0.0",
-    "node": ">=20.0.0"
+    "node": ">=20.19.0"
   },
   "dependencies": {
     "@nestjs-modules/mailer": "^2.3.7",
@@ -38,6 +38,11 @@
     "@nestjs/serve-static": "^5.0.5",
     "@nestjs/throttler": "^6.7.1",
     "@nestjs/typeorm": "^11.0.3",
+    "@types/amqplib": "^0.10.8",
+    "@types/bcrypt": "^6.0.0",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express-session": "^1.19.0",
+    "@types/ioredis": "^4.28.10",
     "@types/sanitize-html": "^2.16.2",
     "amqp-connection-manager": "^5.0.0",
     "amqplib": "^2.2.0",
@@ -70,11 +75,6 @@
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
     "@nestjs/testing": "^11.0.1",
-    "@types/amqplib": "^0.10.8",
-    "@types/bcrypt": "^6.0.0",
-    "@types/cookie-parser": "^1.4.10",
-    "@types/express-session": "^1.19.0",
-    "@types/ioredis": "^4.28.10",
     "@types/jest": "^29.5.14",
     "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",
