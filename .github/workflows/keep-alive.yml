@@ -1,0 +1,24 @@
+name: Render Keep-Alive Heartbeat
+
+on:
+  schedule:
+    # Runs every 10 minutes (well under Render's 15-minute idle spin-down limit)
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping-render-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render Web Services (/health)
+        run: |
+          for url in \
+            "https://oil-supply-delivery-management-system.onrender.com/health" \
+            "https://oil-supply-delivery-management-system-backend.onrender.com/health" \
+            "${{ vars.RENDER_BACKEND_URL }}"; do
+            if [ -n "$url" ]; then
+              echo "Pinging $url ..."
+              curl -sS -L --max-time 45 -A "GitHub-Actions-KeepAlive/1.0" "$url" || true
+              echo ""
+            fi
+          done
